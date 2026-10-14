@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BIO 207 -- Exam I Practice</title>
+<style>
+:root{
+  --bg:#fafafa; --fg:#1a1a1a; --muted:#666; --card:#ffffff; --border:#ddd;
+  --accent:#2563eb; --accent-fg:#ffffff; --good:#15803d; --good-bg:#dcfce7;
+  --bad:#b91c1c; --bad-bg:#fee2e2; --chip:#eef2ff; --warn:#b45309; --warn-bg:#fef3c7;
+  --radius:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121212; --fg:#f0f0f0; --muted:#a0a0a0; --card:#1e1e1e; --border:#333;
+    --accent:#60a5fa; --accent-fg:#0b1220; --good:#4ade80; --good-bg:#0f2e1a;
+    --bad:#f87171; --bad-bg:#3a1414; --chip:#1f2540; --warn:#fbbf24; --warn-bg:#3a2e0f;
+  }
+  html{ color-scheme: dark; }
+}
+:root[data-theme="dark"]{
+  --bg:#121212; --fg:#f0f0f0; --muted:#a0a0a0; --card:#1e1e1e; --border:#333;
+  --accent:#60a5fa; --accent-fg:#0b1220; --good:#4ade80; --good-bg:#0f2e1a;
+  --bad:#f87171; --bad-bg:#3a1414; --chip:#1f2540; --warn:#fbbf24; --warn-bg:#3a2e0f;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  -webkit-tap-highlight-color: transparent;
+}
+#app{ max-width:580px; margin:0 auto; padding:16px 16px 48px; position:relative; }
+.topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.topbar .brand{ font-size:12px; color:var(--muted); font-weight:600; letter-spacing:.02em; }
+.tutorial-dots{ display:flex; gap:6px; justify-content:center; margin-top:14px; }
+.tutorial-dot{ width:7px; height:7px; border-radius:50%; background:var(--border); }
+.tutorial-dot.active{ background:var(--accent); }
+h1{ font-size:20px; font-weight:600; margin:4px 0 2px; }
+h2{ font-size:16px; font-weight:600; margin:0 0 10px; }
+.muted{ color:var(--muted); font-size:13px; }
+.card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; }
+.row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.btn{
+  display:block; width:100%; text-align:left; background:var(--card); color:var(--fg);
+  border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px;
+  font-size:15px; margin-bottom:10px; cursor:pointer;
+}
+.btn:active{ transform:scale(0.99); }
+.btn-primary{ background:var(--accent); color:var(--accent-fg); border-color:var(--accent); font-weight:600; text-align:center; }
+.btn-primary:disabled{ opacity:0.5; }
+.btn-ghost{ background:transparent; }
+.btn-sm{ display:inline-block; width:auto; padding:8px 12px; font-size:13px; margin:0 6px 6px 0; }
+.chip{ display:inline-block; background:var(--chip); color:var(--accent); font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px; margin-right:6px; margin-bottom:6px; cursor:pointer; border:none; }
+.chip.tag-warn{ background:var(--warn-bg); color:var(--warn); }
+.statgrid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:10px 0; }
+.stat{ background:var(--chip); border-radius:var(--radius); padding:12px; }
+.stat .num{ font-size:22px; font-weight:600; }
+.stat .lab{ font-size:12px; color:var(--muted); }
+.barwrap{ background:var(--border); border-radius:6px; height:10px; overflow:hidden; margin-top:6px;}
+.bar{ height:100%; background:var(--accent); transition:width .3s; }
+.heatbar{ height:16px; border-radius:6px; }
+.progresstop{ font-size:13px; color:var(--muted); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+.qtext{ font-size:16px; line-height:1.5; margin-bottom:10px; }
+.opt{ display:block; width:100%; text-align:left; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:8px; font-size:15px; cursor:pointer; }
+.opt.selected{ border-color:var(--accent); border-width:2px; }
+.opt.correct{ border-color:var(--good); background:var(--good-bg); border-width:2px; }
+.opt.incorrect{ border-color:var(--bad); background:var(--bad-bg); border-width:2px; }
+input[type=text],input[type=number]{
+  width:100%; padding:12px 14px; font-size:15px; border-radius:var(--radius);
+  border:1px solid var(--border); background:var(--card); color:var(--fg);
+}
+select{
+  width:100%; padding:10px 12px; font-size:14px; border-radius:var(--radius);
+  border:1px solid var(--border); background:var(--card); color:var(--fg); margin-top:4px;
+}
+.matchrow{ margin-bottom:12px; }
+.matchrow .mleft{ font-size:14px; margin-bottom:4px; }
+.feedback{ border-radius:var(--radius); padding:12px 14px; margin-top:10px; font-size:14px; }
+.feedback.good{ background:var(--good-bg); color:var(--good); }
+.feedback.bad{ background:var(--bad-bg); color:var(--bad); }
+.feedback.warn{ background:var(--warn-bg); color:var(--warn); font-weight:600; }
+.err{ color:var(--bad); font-size:13px; margin-top:6px; }
+.footerbtn{ position:sticky; bottom:0; background:var(--bg); padding:10px 0 4px; }
+.small{ font-size:12px; color:var(--muted); margin-top:4px; }
+a{ color:var(--accent); }
+.iconbtn{ background:none; border:1px solid var(--border); border-radius:8px; padding:6px 10px; font-size:13px; color:var(--fg); cursor:pointer; }
+.timerbar{ height:6px; background:var(--border); border-radius:4px; overflow:hidden; margin-bottom:10px; }
+.timerfill{ height:100%; background:var(--warn); transition:width .2s linear; }
+.modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px; }
+.modal-box{ background:var(--card); border-radius:var(--radius); padding:20px; max-width:440px; width:100%; max-height:80vh; overflow-y:auto; }
+.modal-box svg{ width:100%; height:auto; color:var(--fg); }
+.confband{ display:flex; gap:8px; margin:10px 0; }
+.confbtn{ flex:1; padding:10px 6px; font-size:13px; border-radius:var(--radius); border:1px solid var(--border); background:var(--card); color:var(--fg); cursor:pointer; text-align:center; }
+.confbtn.selected{ border-color:var(--accent); border-width:2px; background:var(--chip); }
+svg.diagram{ width:100%; height:auto; color:var(--fg); cursor:zoom-in; }
+.confetti-piece{ position:fixed; top:-10px; width:8px; height:8px; z-index:100; pointer-events:none; }
+textarea.plan-out{ width:100%; min-height:220px; font-size:13px; border-radius:var(--radius); border:1px solid var(--border); background:var(--card); color:var(--fg); padding:12px; font-family:inherit; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="confetti-root"></div>
+<script>
+// ======================= DATA =======================
+var QUESTIONS = [{"id": "c1_01", "ch": 1, "type": "mc", "q": "Which of the following is not considered a microorganism?", "opts": ["Archaean", "Bacterium", "Protozoan", "Mushroom"], "correct": 3, "exp": "A mushroom is a multicellular fungus visible without magnification -- not a microorganism."}, {"id": "c1_02", "ch": 1, "type": "mc", "q": "An area of microbiology concerned with the occurrence of disease in human populations is", "opts": ["Immunology", "Parasitology", "Epidemiology", "Bioremediation"], "correct": 2, "exp": "Epidemiology studies disease spread in populations."}, {"id": "c1_03", "ch": 1, "type": "mc", "q": "Which process involves the deliberate alteration of an organism's genetic material?", "opts": ["Bioremediation", "Biotechnology", "Decomposition", "Recombinant DNA"], "correct": 3, "exp": "Recombinant DNA technology deliberately alters genetic material; biotechnology is the broader application category."}, {"id": "c1_04", "ch": 1, "type": "mc", "q": "A prominent difference between prokaryotic and eukaryotic cells is the", "opts": ["Larger size of prokaryotes", "Lack of pigmentation in eukaryotes", "Presence of a nucleus in eukaryotes", "Presence of a cell wall in prokaryotes"], "correct": 2, "exp": "Eukaryotes have a true, membrane-bound nucleus; prokaryotes do not."}, {"id": "c1_05", "ch": 1, "type": "mc", "q": "Which of the following parts was absent from Leeuwenhoek's microscopes?", "opts": ["Focusing screw", "Lens", "Specimen holder", "Condenser"], "correct": 3, "exp": "Leeuwenhoek's simple microscopes had a single lens, focusing screw, and specimen holder, but no condenser."}, {"id": "c1_06", "ch": 1, "type": "mc", "q": "Abiogenesis refers to the", "opts": ["Spontaneous generation of organisms from nonliving matter", "Development of life forms from preexisting life forms", "Development of aseptic technique", "Germ theory of disease"], "correct": 0, "exp": "Abiogenesis = spontaneous generation; biogenesis is the opposing, correct principle."}, {"id": "c1_07", "ch": 1, "type": "mc", "q": "A hypothesis can be defined as", "opts": ["A belief based on knowledge", "Knowledge based on belief", "A scientific explanation that is subject to testing", "A theory that has been thoroughly tested"], "correct": 2, "exp": "A hypothesis is a tentative, testable explanation."}, {"id": "c1_08", "ch": 1, "type": "mc", "q": "Which early microbiologist was most responsible for developing standard microbiology laboratory techniques?", "opts": ["Ignaz Semmelweis", "Robert Koch", "Carl von Linne", "John Tyndall"], "correct": 1, "exp": "Robert Koch developed pure culture technique and his postulates -- don’t confuse with Pasteur (germ theory, pasteurization, spontaneous generation)."}, {"id": "c1_09", "ch": 1, "type": "mc", "q": "Which scientist is most responsible for finally laying the theory of spontaneous generation to rest?", "opts": ["Joseph Lister", "Robert Koch", "Francesco Redi", "Louis Pasteur"], "correct": 3, "exp": "Pasteur’s swan-neck flask experiments disproved spontaneous generation."}, {"id": "c1_10", "ch": 1, "type": "mc", "q": "When a hypothesis has been thoroughly supported by long-term study and data, it is considered", "opts": ["A law", "A speculation", "A theory", "Proved"], "correct": 2, "exp": "A well-supported, peer-reviewed hypothesis becomes a theory -- not an absolute ‘law’ or ‘proof.’"}, {"id": "c1_11", "ch": 1, "type": "fill", "q": "Scientists formulate a ______, a tentative explanation to account for what they have observed or measured.", "answers": ["hypothesis"], "exp": "Hypothesis -- a testable, tentative explanation."}, {"id": "c1_12", "ch": 1, "type": "fill", "q": "Scientists then conduct ______ to determine the validity of their explanations.", "answers": ["experiments"], "exp": "Experiments test whether a hypothesis holds up."}, {"id": "c1_13", "ch": 1, "type": "fill", "q": "If an explanation is supported by numerous research studies that survive peer review over time, it can be moved to the level of a ______.", "answers": ["theory"], "exp": "A well-tested, peer-reviewed explanation becomes a theory."}, {"id": "c1_14", "ch": 1, "type": "fill", "q": "Some explanations of scientific phenomena are so well-tested that they move to the highest level of confidence and become a ______.", "answers": ["law"], "exp": "A law is the highest level of confidence in science."}, {"id": "c1_15", "ch": 1, "type": "match", "q": "Match each description to the correct group of microorganisms.", "items": ["Single-celled prokaryotes", "Single or multi-cellular eukaryotes that photosynthesize to obtain energy", "Multicellular eukaryotic organisms like parasitic worms", "Minute acellular particles that parasitize cells", "Molds and yeasts", "Unicellular eukaryotes often described as animal-like"], "rights": ["Bacteria", "Algae", "Helminths", "Viruses", "Fungi", "Protozoa"], "exp": "These are the major groups covered in 1.1: Bacteria, Algae, Helminths, Viruses, Fungi, Protozoa."}, {"id": "c1_16", "ch": 1, "type": "match", "q": "Match each clue to the correct taxonomic domain.", "items": ["Includes prokaryotes such as Staphylococcus aureus, with peptidoglycan cell walls", "Has the closest molecular (rRNA) relationship to the eukaryotic domain; includes methane-producers and extremophiles", "Includes humans, fungi, protozoa, and animals"], "rights": ["Domain Bacteria", "Domain Archaea", "Domain Eukarya"], "exp": "The Archaea-Eukarya molecular relationship is a frequently tested, counterintuitive fact -- commit it to memory.", "terms": ["Archaea"]}, {"id": "c1_17", "ch": 1, "type": "mc", "q": "Which of the following is the correctly written scientific (binomial) name?", "opts": ["Escherichia coli", "escherichia coli", "Escherichia Coli", "ESCHERICHIA COLI"], "correct": 0, "exp": "Genus is capitalized, species is lowercase, and the whole name is italicized (or underlined if handwritten)."}, {"id": "c1_18", "ch": 1, "type": "fill", "q": "A/an ______ disease is a new disease being reported in increasing numbers within a population.", "answers": ["emerging"], "exp": "Emerging = new to the population."}, {"id": "c1_19", "ch": 1, "type": "fill", "q": "A/an ______ disease is one which has existed in the past but is currently seeing increasing numbers of cases.", "answers": ["reemerging"], "exp": "Reemerging = was present before, now rising again."}, {"id": "c1_20", "ch": 1, "type": "fill", "q": "When positive cases of a disease have been detected on multiple continents, it is declared a ______.", "answers": ["pandemic"], "exp": "Pandemic = multi-continent spread (vs. epidemic = regional)."}, {"id": "c1_21", "ch": 1, "type": "fill", "q": "A disease acquired by humans from a particular animal is considered ______.", "answers": ["zoonotic"], "exp": "Zoonotic diseases jump from animals to humans."}, {"id": "c1_22", "ch": 1, "type": "fill", "q": "Pasteur's experiments helped replace the theory of spontaneous generation with the principle of ______ -- that life arises only from preexisting life.", "answers": ["biogenesis"], "exp": "Biogenesis is the opposite of abiogenesis/spontaneous generation."}, {"id": "c1_23", "ch": 1, "type": "mc", "q": "Van Leeuwenhoek's “animalcules,” observed with a simple microscope, are now recognized as:", "opts": ["Microorganisms", "Viruses only", "Parasitic worms", "Prions"], "correct": 0, "exp": "Animalcules was Leeuwenhoek's term for the microorganisms he observed."}, {"id": "c1_24", "ch": 1, "type": "fill", "q": "A disease native to animals that can be transmitted to humans is called a ______.", "answers": ["zoonosis", "zoonoses", "a zoonosis"], "exp": "Zoonosis = animal-to-human transmissible disease."}, {"id": "c1_25", "ch": 1, "type": "mc", "q": "The standard taxonomic ranks, from broadest to narrowest, are:", "opts": ["Kingdom, Domain, Phylum, Class, Order, Family, Genus, Species", "Domain, Kingdom, Phylum, Class, Order, Family, Genus, Species", "Domain, Phylum, Kingdom, Class, Family, Order, Genus, Species", "Species, Genus, Family, Order, Class, Phylum, Kingdom, Domain (as broadest first)"], "correct": 1, "exp": "Domain, Kingdom, Phylum, Class, Order, Family, Genus, Species -- “Dear King Philip Came Over For Good Soup.”", "terms": ["taxonomy"]}, {"id": "c1_26", "ch": 1, "type": "fill", "q": "In the late 1600s, ______ designed several simple microscopes to observe microbes.", "answers": ["van leeuwenhoek", "leeuwenhoek"], "exp": "Van Leeuwenhoek pioneered simple single-lens microscopes."}, {"id": "c1_27", "ch": 1, "type": "fill", "q": "______ was the first surgeon to introduce aseptic techniques into the operating room to reduce microbes and prevent infection.", "answers": ["lister", "joseph lister"], "exp": "Joseph Lister pioneered antiseptic surgery -- don't confuse with Semmelweis, who focused on handwashing in obstetrics."}, {"id": "c1_28", "ch": 1, "type": "fill", "q": "As a leading microbiologist during the Golden Age of microbiology, ______ disproved the theory of abiogenesis (spontaneous generation).", "answers": ["pasteur", "louis pasteur"], "exp": "Pasteur's swan-neck flask experiments were the final, decisive blow to spontaneous generation."}, {"id": "c1_29", "ch": 1, "type": "fill", "q": "Also during the Golden Age of microbiology, ______ established four proofs (postulates) that could be used to determine an organism's pathogenicity, and developed many lab techniques still used today.", "answers": ["koch", "robert koch"], "exp": "Koch's postulates and pure culture technique."}, {"id": "c1_30", "ch": 1, "type": "match", "q": "Match each clue to its taxonomic domain (fuller set).", "items": ["Includes fungi, protozoa, and animals", "Humans", "Domain with the closest relationship to the eukaryotic domain", "Gram-positive bacteria", "Extreme prokaryotes", "Includes prokaryotes such as Staphylococcus aureus", "Methane-producing prokaryotes"], "rights": ["Domain Eukarya", "Domain Eukarya", "Domain Archaea", "Domain Bacteria", "Domain Archaea", "Domain Bacteria", "Domain Archaea"], "exp": "Archaea: closest relation to Eukarya, extremophiles, methanogens. Bacteria: gram-positive bacteria, Staph aureus. Eukarya: humans, fungi/protozoa/animals.", "terms": ["Archaea"]}, {"id": "c1_31", "ch": 1, "type": "match", "q": "Match each statement to the correct cell type.", "items": ["Does not contain organelles but can replicate independently via binary fission", "Contains a nucleus and undergoes mitosis", "Does not contain ribosomes and cannot replicate independently", "Contains ribosomes and enzymes", "Contains nucleic acid"], "rights": ["Prokaryotic cells", "Eukaryotic cells", "Viruses", "Both eukaryotic and prokaryotic cells", "All three (prokaryotic cells, eukaryotic cells, and viruses)"], "exp": "Viruses lack ribosomes/organelles and can't replicate alone; both cell types share ribosomes; all three contain nucleic acid."}, {"id": "c1_32", "ch": 1, "type": "mc", "q": "Which trait is shared by BOTH prokaryotic and eukaryotic cells?", "opts": ["DNA and ribosomes", "A nucleus", "A Golgi body", "A cell wall (universally)"], "correct": 0, "exp": "DNA and ribosomes are universal; nucleus/Golgi are eukaryote-only, and cell walls are not universal to either domain."}, {"id": "c1_33", "ch": 1, "type": "mc", "q": "A nurse explains a zoonosis to a patient. What is the best description?", "opts": ["Any viral disease", "Any disease treatable with antibiotics", "A disease typically found in animals that can infect humans", "A disease caused by a eukaryotic parasite"], "correct": 2, "exp": "Zoonosis = animal-origin disease transmissible to humans."}, {"id": "d1_01", "ch": 1, "type": "discuss", "q": "Define ‘microorganism’ and outline the important contributions microbes make to Earth's ecosystems.", "model": "Microorganisms are living things too small to see unaided (bacteria, archaea, fungi, protozoa, algae, plus acellular viruses). They recycle nutrients through decomposition, anchor many food chains, fix nitrogen, and produce much of the planet's oxygen."}, {"id": "d1_02", "ch": 1, "type": "discuss", "q": "Describe five different ways humans exploit microorganisms for our benefit.", "model": "Food/beverage production (bread, cheese, yogurt, beer); antibiotic and drug production; bioremediation of pollutants; biotechnology/genetic engineering (insulin, vaccines); agriculture (nitrogen fixation, biopesticides)."}, {"id": "d1_03", "ch": 1, "type": "discuss", "q": "Identify the groups of microorganisms within the scope of microbiology, and the criteria for including them.", "model": "Bacteria, archaea, fungi, protozoa, algae, helminths, and viruses -- grouped by being microscopic (or, for helminths, by medical/parasitic relevance)."}, {"id": "d1_04", "ch": 1, "type": "discuss", "q": "Rank the microbial groups from smallest to largest.", "model": "Viruses < bacteria/archaea < protozoa/fungi/algae < helminths (visible as adults)."}, {"id": "d1_05", "ch": 1, "type": "discuss", "q": "Construct a table of microbial groups based on cell type.", "model": "Acellular: viruses. Prokaryotic: bacteria, archaea. Eukaryotic: fungi, protozoa, algae, helminths."}, {"id": "d1_06", "ch": 1, "type": "discuss", "q": "Explain: ‘Microorganisms -- we need to live with them because we can't live without them.’", "model": "Only a small fraction of microbes are pathogens; the vast majority are essential for digestion, nutrient cycling, oxygen production, and ecosystem balance."}, {"id": "d1_07", "ch": 1, "type": "discuss", "q": "Describe ways the beneficial qualities of microbes outweigh their role as infectious agents.", "model": "Decomposition, food production, drug synthesis, soil fertility, and symbiotic digestion (gut microbiota) all vastly outweigh the comparatively few pathogenic species."}, {"id": "d1_08", "ch": 1, "type": "discuss", "q": "What strategies are used to combat different infectious diseases?", "model": "Vaccines (prevention), antibiotics/antivirals/antifungals (treatment), sanitation/hygiene (transmission control), and quarantine/public health measures."}, {"id": "d1_09", "ch": 1, "type": "discuss", "q": "Distinguish emerging vs. reemerging infectious diseases, and the factors driving them.", "model": "Emerging = new to a population; reemerging = a previously-declining disease rising again. Drivers: global travel, climate change, antimicrobial resistance, deforestation, vaccine hesitancy."}, {"id": "d1_10", "ch": 1, "type": "discuss", "q": "Outline the most significant discoveries in microscopy, culture technique, and microbe control.", "model": "Leeuwenhoek's simple microscopes; Pasteur's swan-neck flasks disproving spontaneous generation; Koch's pure culture technique and postulates; Lister's antiseptic surgery; Tyndall's discovery of heat-resistant spores."}, {"id": "d1_11", "ch": 1, "type": "discuss", "q": "Differentiate a hypothesis from a theory. What does ‘only a theory’ really mean in science?", "model": "A hypothesis is a tentative, testable explanation; a theory is a hypothesis thoroughly supported by repeated, peer-reviewed testing. ‘Only a theory’ misunderstands that in science, theory signals high confidence, not a guess."}, {"id": "d1_12", "ch": 1, "type": "discuss", "q": "Is the germ theory of disease actually a law? Justify your answer.", "model": "No -- it remains a theory. ‘Law’ is reserved for an even stricter tier, and germ theory, while extremely well-supported, is explanatory rather than a strict mathematical law."}, {"id": "d1_13", "ch": 1, "type": "discuss", "q": "Why was abandoning spontaneous generation so significant?", "model": "It redirected science toward biogenesis and paved the way for germ theory, sanitation, and modern medicine."}, {"id": "d1_14", "ch": 1, "type": "discuss", "q": "Differentiate taxonomy, classification, and nomenclature.", "model": "Taxonomy = the science of classification; classification = arranging organisms into hierarchical groups; nomenclature = the naming system."}, {"id": "d1_15", "ch": 1, "type": "discuss", "q": "What is the basis for a phylogenetic classification system?", "model": "Evolutionary relationships/common ancestry, often inferred from molecular (rRNA) sequence similarity."}, {"id": "d1_16", "ch": 1, "type": "discuss", "q": "Explain binomial nomenclature and give the taxa order, most general to most specific.", "model": "Each organism gets a two-part italicized Latin name (Genus species, genus capitalized). Order: Domain, Kingdom, Phylum, Class, Order, Family, Genus, Species."}, {"id": "d1_17", "ch": 1, "type": "discuss", "q": "What are the benefits of using scientific names?", "model": "Universal and precise across languages, avoiding the ambiguity of common names that vary by region."}, {"id": "d1_18", "ch": 1, "type": "discuss", "q": "Define evolution.", "model": "Change in the heritable characteristics of populations across generations, driven by mutation, selection, drift, and gene flow."}, {"id": "d1_19", "ch": 1, "type": "discuss", "q": "How does evolution explain the diversity and adaptation of species? Give examples.", "model": "Natural selection favors environment-suited traits over time, producing huge adapted diversity -- e.g., extremophile archaea, antibiotic-resistant bacteria."}, {"id": "d1_20", "ch": 1, "type": "discuss", "q": "Looking at the tree of life, which kingdom(s) are humans most closely related to?", "model": "Animalia, within Domain Eukarya."}, {"id": "d1_21", "ch": 1, "type": "discuss", "q": "Archaea often live in extreme heat/salt/acidity similar to early Earth -- speculate on the origin of life.", "model": "Suggests early life may have arisen in similarly harsh conditions (e.g., hydrothermal vents), with archaea as an ancient lineage adapted to those primordial extremes."}, {"id": "d1_22", "ch": 1, "type": "discuss", "q": "Compare the domain system with the five-kingdom system. Does it change the prokaryote/eukaryote idea? What's the third cell type?", "model": "The three-domain system splits prokaryotes into Bacteria and Archaea (plus Eukarya), revealing Archaea as a distinct third cell type -- refining, not discarding, the prokaryote/eukaryote split."}, {"id": "d1_23", "ch": 1, "type": "discuss", "q": "What does it mean to say microbes are ubiquitous?", "model": "They are found virtually everywhere -- soil, water, air, extreme environments, and on/in other organisms."}, {"id": "d1_24", "ch": 1, "type": "discuss", "q": "What is meant by diversity with respect to organisms?", "model": "The wide variety of species, forms, and metabolic strategies found across life."}, {"id": "d1_25", "ch": 1, "type": "discuss", "q": "What events/discoveries/inventions were most significant in developing microbiology, and why?", "model": "The microscope (made microbes visible), disproof of spontaneous generation (established biogenesis), germ theory (linked microbes to disease), and aseptic/pure-culture technique (enabled controlled study)."}, {"id": "d1_26", "ch": 1, "type": "discuss", "q": "Explain how microbiologists use the scientific method to develop theories.", "model": "Observe, form a hypothesis, design and run controlled experiments, analyze data, refine or reject -- after repeated peer-reviewed confirmation, elevate to theory."}, {"id": "d1_27", "ch": 1, "type": "discuss", "q": "Explain how microbes are classified by evolutionary relationships, named, and identified.", "model": "Grouped via phylogenetic/molecular relatedness, given standard binomial Latin names, and identified using morphological, biochemical, and genetic criteria."}, {"id": "d1_28", "ch": 1, "type": "discuss", "q": "(a) What are sources of ‘new’ infectious diseases? (b) Comment on sensationalized media portrayal of infectious disease dangers.", "model": "(a) Zoonotic spillover, mutation, travel/urbanization, antimicrobial resistance. (b) Media can exaggerate rare risks or oversimplify outbreak dynamics, fueling fear disproportionate to actual risk."}, {"id": "d1_29", "ch": 1, "type": "discuss", "q": "What would the world be like with cures for all infectious disease and a way to destroy all microbes? What characteristics of microbes prevent this?", "model": "Impossible in practice: microbes reproduce/mutate far faster than we can counter them, exist in astronomical numbers, occupy unsterilizable niches, and many are essential to ecosystems and our own bodies."}, {"id": "d1_30", "ch": 1, "type": "discuss", "q": "Describe the scientific reasoning in experiments supporting vs. denying spontaneous generation.", "model": "Needham's flawed heating seemed to support it (inadequate sterilization); Spallanzani's sealed flasks challenged it; Pasteur's swan-neck flask isolated the variable (air without contamination) to conclusively disprove it."}, {"id": "d1_31", "ch": 1, "type": "discuss", "q": "Name the technical title for a microbiologist studying termite-gut protozoa, volcano bacteria, dog tapeworms, food-poisoning molds, emerging viruses, acid-swamp bacteria, and Paramecium classification.", "model": "A microbiologist, broadly -- spanning protozoology, extremophile/environmental microbiology, parasitology, mycology, and virology."}, {"id": "d1_32", "ch": 1, "type": "discuss", "q": "What is the ultimate way microbes will, as Pasteur said, have the ‘last word’?", "model": "All living things, including humans, are ultimately decomposed by microbes after death -- the final stage of the nutrient cycle."}, {"id": "d1_33", "ch": 1, "type": "discuss", "q": "Develop a hypothesis and test for the cause of stomach ulcers (infection/acid/genetics).", "model": "Historically resolved by Barry Marshall, who hypothesized H. pylori infection and proved it by drinking a bacterial culture himself, developing gastritis -- establishing infection as the cause."}, {"id": "d1_34", "ch": 1, "type": "discuss", "q": "Figure 1.10: Jenner inoculating a child against smallpox, with a cow and milkmaid in the background -- explain his reasoning.", "model": "Jenner noticed milkmaids who'd had cowpox seemed immune to smallpox, so he hypothesized deliberate cowpox exposure would protect against smallpox -- the foundation of vaccination."}, {"id": "c4_01", "ch": 4, "type": "mc", "q": "Which structure is not a component of all cells?", "opts": ["Cell wall", "Cell membrane", "Genetic material", "Ribosomes"], "correct": 0, "exp": "Some cells (e.g., mycoplasmas, animal cells) lack a cell wall."}, {"id": "c4_02", "ch": 4, "type": "mc", "q": "Viruses are not considered living things because", "opts": ["They are not cells", "They cannot reproduce by themselves", "They lack metabolism", "All of these are correct"], "correct": 3, "exp": "Viruses fail all three criteria for life."}, {"id": "c4_03", "ch": 4, "type": "mc", "q": "Which of the following is not found in all bacterial cells?", "opts": ["Cell membrane", "A nucleoid", "Ribosomes", "Cytoskeleton"], "correct": 3, "exp": "Not all bacteria have a cytoskeleton; membrane, nucleoid, and ribosomes are universal."}, {"id": "c4_04", "ch": 4, "type": "mc", "q": "The major locomotor structures in bacteria are", "opts": ["Flagella", "Pili", "Fimbriae", "Cilia"], "correct": 0, "exp": "Flagella provide bacterial motility; pili/fimbriae are for attachment/exchange, cilia are eukaryotic."}, {"id": "c4_05", "ch": 4, "type": "mc", "q": "Pili are appendages in ______ bacteria that serve as a means of ______.", "opts": ["gram-positive, genetic exchange", "gram-positive, attachment", "gram-negative, genetic exchange", "gram-negative, protection"], "correct": 2, "exp": "Pili occur on gram-negative cells and mediate conjugation (genetic exchange)."}, {"id": "c4_06", "ch": 4, "type": "mc", "q": "An example of a glycocalyx is", "opts": ["A capsule", "Pili", "Outer membrane", "A cell wall"], "correct": 0, "exp": "A capsule is a well-organized, tightly bound glycocalyx."}, {"id": "c4_07", "ch": 4, "type": "mc", "q": "Which of the following is a primary bacterial cell wall function?", "opts": ["Transport", "Motility", "Support", "Adhesion"], "correct": 2, "exp": "The cell wall's main job is structural support (and shape)."}, {"id": "c4_08", "ch": 4, "type": "mc", "q": "Which of the following is present in both gram-positive and gram-negative cell walls?", "opts": ["An outer membrane", "Peptidoglycan", "Teichoic acid", "Lipopolysaccharides"], "correct": 1, "exp": "Both have peptidoglycan; only gram-negative has LPS/outer membrane, only gram-positive has teichoic acid."}, {"id": "c4_09", "ch": 4, "type": "mc", "q": "Metachromatic granules are concentrated ______ found in ______.", "opts": ["fat, Mycobacterium", "dipicolinic acid, Bacillus", "sulfur, Thiobacillus", "polyphosphate, Corynebacterium"], "correct": 3, "exp": "Metachromatic (volutin) granules are polyphosphate storage, classic in Corynebacterium."}, {"id": "c4_10", "ch": 4, "type": "mc", "q": "Which of the following prokaryotes lacks cell walls?", "opts": ["Rickettsias", "Mycoplasmas", "Mycobacterium", "Archaea"], "correct": 1, "exp": "Mycoplasmas naturally lack a cell wall and rely on sterols in their membrane for strength."}, {"id": "c4_11", "ch": 4, "type": "mc", "q": "The LPS layer in gram-negative cell walls releases ______ that cause ______.", "opts": ["enzymes, pain", "endotoxins, fever", "teichoic acid, inflammation", "phosphates, lysis"], "correct": 1, "exp": "Lipopolysaccharide (LPS) is itself an endotoxin that triggers fever/inflammation."}, {"id": "c4_12", "ch": 4, "type": "mc", "q": "Bacterial endospores function in", "opts": ["Reproduction", "Survival", "Protein synthesis", "Storage"], "correct": 1, "exp": "Endospores are dormant survival structures, not a means of reproduction."}, {"id": "c4_13", "ch": 4, "type": "mc", "q": "An arrangement in packets of eight cells is described as a", "opts": ["Micrococcus", "Diplococcus", "Tetrad", "Sarcina"], "correct": 3, "exp": "Sarcina = cuboidal packets of 8 cocci."}, {"id": "c4_14", "ch": 4, "type": "mc", "q": "The major difference between a spirochete and a spirillum is", "opts": ["The presence of flagella", "The presence of twists", "The nature of motility", "The size"], "correct": 2, "exp": "Spirochetes move via internal axial filaments (endoflagella); spirilla use external flagella."}, {"id": "c4_15", "ch": 4, "type": "mc", "q": "Which phylum contains bacteria with a gram-positive cell wall?", "opts": ["Proteobacteria", "Chlorobi", "Firmicutes (Bacillota)", "Spirochetes"], "correct": 2, "exp": "Firmicutes (Bacillota) is the classic gram-positive phylum."}, {"id": "c4_16", "ch": 4, "type": "mc", "q": "To which taxonomic group do cyanobacteria belong?", "opts": ["Domain Archaea", "Phylum Actinobacteria", "Domain Bacteria", "Phylum Fusobacteria"], "correct": 2, "exp": "Cyanobacteria are photosynthetic members of Domain Bacteria."}, {"id": "c4_17", "ch": 4, "type": "mc", "q": "Which stain is used to distinguish differences between the cell walls of medically important bacteria?", "opts": ["Simple stain", "Acridine orange stain", "Gram stain", "Negative stain"], "correct": 2, "exp": "The Gram stain differentiates based on cell wall/envelope structure."}, {"id": "c4_18", "ch": 4, "type": "mc", "q": "The first living cells on earth would most likely resemble which of these?", "opts": ["A cyanobacterium", "An endospore former", "A gram-positive cell", "An archaeon"], "correct": 3, "exp": "Archaea are thought to most resemble the earliest cells, adapted to harsh early-earth conditions."}, {"id": "c4_19", "ch": 4, "type": "match", "q": "Match the cell wall component with the type of cell where it is found.", "items": ["Teichoic acid", "Lipopolysaccharide / outer membrane", "Peptidoglycan; cell membrane"], "rights": ["Gram-positive cells", "Gram-negative cells", "Both gram-positive and gram-negative cells"], "exp": "Teichoic acid = gram-positive only; LPS/outer membrane = gram-negative only; peptidoglycan and the cell membrane are shared by both."}, {"id": "c4_20", "ch": 4, "type": "match", "q": "Match each cell type with the statement that best describes its wall.", "items": ["Gram-positive cells", "Gram-negative cells", "Acid-fast cells", "Mycoplasmas"], "rights": ["Cells with a thick layer of peptidoglycan and teichoic acids", "Cells with both an inner and outer membrane plus a thin layer of peptidoglycan", "Cells with a thick layer of mycolic acid (cord factor)", "Cells which lack a peptidoglycan cell wall but have sterols in their membrane"], "exp": "Acid-fast cells (e.g., Mycobacterium) resist Gram staining because of their waxy mycolic acid wall.", "terms": ["Gram stain", "acid-fast"]}, {"id": "c4_21", "ch": 4, "type": "match", "q": "Match the flagellar arrangement term to its description.", "items": ["Polar", "Monotrichous", "Lophotrichous", "Amphitrichous", "Peritrichous"], "rights": ["Flagella at either or both ends of the cell (general term)", "One flagellum attached at one end of the cell", "A tuft of flagella originating from the same point on the cell", "Flagella at both poles of the cell", "Flagella distributed randomly around the entire cell"], "exp": "Polar is the general term; mono/lopho/amphi are specific polar patterns; peritrichous is all-over."}, {"id": "c4_22", "ch": 4, "type": "match", "q": "Match the external appendage to the description of its function.", "items": ["Flagella", "Fimbriae", "Pili", "Axial filaments"], "rights": ["Composed of a filament, hook, and basal body; provide movement to the cell", "Short, bristle-like projections used to attach the cell to other cells or surfaces", "Long, tubular appendages that allow cells to conjugate with other cells", "Long, coiled threads that provide movement to spirochetes"], "exp": "Don't mix up fimbriae (attachment) with pili (conjugation) -- a classic matching trap."}, {"id": "c4_23", "ch": 4, "type": "match", "q": "Match the glycocalyx-related term to its description.", "items": ["Glycocalyx", "Slime layer", "Capsule"], "rights": ["General term for all coatings covering the surface of the cell", "A loosely attached, thin, mucoid layer that protects against drying or nutrient loss", "A layer of polysaccharides/proteins tightly bound to the cell that contributes to pathogenicity"], "exp": "Glycocalyx is the umbrella term; slime layer (loose) and capsule (tightly bound, virulence factor) are its two forms."}, {"id": "c4_24", "ch": 4, "type": "mc", "q": "Going from innermost to outermost, the correct order of generalized bacterial cell structures is:", "opts": ["Cytoplasmic matrix → Cell wall → Cell membrane → Glycocalyx", "Cytoplasmic matrix → Cell membrane → Cell wall → Glycocalyx", "Glycocalyx → Cell wall → Cell membrane → Cytoplasmic matrix (innermost last)", "Cell membrane → Cytoplasmic matrix → Cell wall → Glycocalyx"], "correct": 1, "exp": "Innermost to outermost: cytoplasm, then membrane, then wall, then the outer glycocalyx."}, {"id": "c4_25", "ch": 4, "type": "fill", "q": "The correct order of Gram stain steps is: crystal violet, ______, decolorizer, safranin.", "answers": ["iodine"], "exp": "Mnemonic: “Come In And Stain” -- Crystal violet, Iodine, Alcohol (decolorizer), Safranin.", "terms": ["Gram stain"]}, {"id": "c4_26", "ch": 4, "type": "mc", "q": "The riskiest step in Gram staining -- where over- or under-timing causes most technique errors -- is the:", "opts": ["Primary stain", "Mordant", "Decolorization", "Counterstain"], "correct": 2, "exp": "Decolorization is the highest-risk, most error-prone step in both Gram and acid-fast staining.", "terms": ["Gram stain"]}, {"id": "c4_27", "ch": 4, "type": "tf", "q": "The Gram stain reliably classifies Mycobacterium tuberculosis as either gram-positive or gram-negative.", "correct": false, "exp": "False -- its mycolic-acid-rich wall resists the Gram stain entirely; acid-fast staining is required instead.", "terms": ["acid-fast"]}, {"id": "c4_28", "ch": 4, "type": "mc", "q": "Bacterial capsules contribute to pathogenicity by:", "opts": ["Enhancing antibiotic resistance", "Allowing bacteria to evade the immune system of the host", "Facilitating endospore formation", "Increasing bacterial motility"], "correct": 1, "exp": "Capsules help bacteria evade phagocytosis by the host immune system."}, {"id": "c4_29", "ch": 4, "type": "mc", "q": "What is the difference between a bacterial capsule and a slime layer?", "opts": ["A capsule is loosely attached while a slime layer is tightly bound to the cell", "A capsule is composed primarily of proteins while a slime layer is made of DNA", "A capsule is more tightly bound to the cell, and more organized, than a slime layer", "There is no difference -- the two terms refer to the same structure"], "correct": 2, "exp": "Capsule = tightly bound, organized; slime layer = loosely attached."}, {"id": "c4_30", "ch": 4, "type": "mc", "q": "Which feature is found in all prokaryotic cells?", "opts": ["Cell membrane", "Endospores", "Flagella", "Nucleus"], "correct": 0, "exp": "Cell membrane is universal; endospores, flagella, and nuclei are not."}, {"id": "c4_31", "ch": 4, "type": "mc", "q": "Cell membranes are composed principally of", "opts": ["DNA and protein", "Phospholipids and DNA", "Protein and phospholipids", "Carbohydrates and proteins"], "correct": 2, "exp": "Membranes are a phospholipid bilayer studded with proteins."}, {"id": "d4_01", "ch": 4, "type": "discuss", "q": "Using clay, show how cocci divide in several planes, and how bacilli arrangements (including palisades) occur.", "model": "Cocci dividing in one plane form chains (streptococci); two planes form tetrads; three planes form packets (sarcina) or irregular clusters (staphylococci). Bacilli dividing and staying attached end-to-end form chains or palisades (snapping division, V-shapes)."}, {"id": "d4_02", "ch": 4, "type": "discuss", "q": "Compare a corkscrew and a spring to spirilla and spirochetes' flexibility and locomotion.", "model": "A rigid corkscrew represents a spirillum (stiff helical cell, external flagella rotate the whole rigid cell). A flexible spring represents a spirochete (flexible cell, internal axial filaments flex/corkscrew the body for movement)."}, {"id": "d4_03", "ch": 4, "type": "discuss", "q": "A rod-shaped cell is swimming rapidly forward. (a) What do you know about its structure? (b) Propose another flagellar function besides locomotion.", "model": "(a) It possesses flagella. (b) Flagella can also act as sensory/chemotaxis appendages, or aid attachment/invasion in some pathogens."}, {"id": "d4_04", "ch": 4, "type": "discuss", "q": "Name an acid-fast bacterium and explain what makes it different from other gram-positive bacteria.", "model": "Mycobacterium tuberculosis -- its cell wall is rich in waxy mycolic acid, resisting standard Gram staining and requiring acid-fast staining instead.", "terms": ["acid-fast"]}, {"id": "d4_05", "ch": 4, "type": "discuss", "q": "(a) Name a photosynthetic bacterial group. (b) Describe the two major photosynthetic bacterial groups and their similarities/differences.", "model": "(a) Cyanobacteria. (b) Cyanobacteria perform oxygenic photosynthesis (produce O2, like plants); green/purple sulfur bacteria perform anoxygenic photosynthesis (no O2 produced, using H2S instead of water)."}, {"id": "d4_06", "ch": 4, "type": "discuss", "q": "Propose a hypothesis for how bacteria and archaea together gave rise to eukaryotes.", "model": "Endosymbiotic theory: an archaeal host cell engulfed an aerobic bacterium (ancestor of mitochondria) and, in some lineages, a cyanobacterium (ancestor of chloroplasts), forming a stable symbiosis that became the eukaryotic cell."}, {"id": "d4_07", "ch": 4, "type": "discuss", "q": "What happens to the cell wall if penicillin blocks interbridge (cross-link) synthesis?", "model": "Peptidoglycan cross-linking fails, the wall can't maintain its shape/strength, and the cell undergoes osmotic lysis, especially in a hypotonic environment."}, {"id": "d4_08", "ch": 4, "type": "discuss", "q": "Describe the biofilm-on-a-glass-slide observation technique.", "model": "Suspending a slide in an aquarium for weeks, then air-drying, fixing, and Gram staining it reveals a diverse, layered community of attached cell types -- a hands-on look at natural biofilm formation."}, {"id": "d4_09", "ch": 4, "type": "discuss", "q": "Label the parts of a generalized bacterial cell and describe each part's function.", "model": "See the labeling diagram in this app -- capsule/glycocalyx: protection/adhesion; cell wall: shape/support; cell membrane: transport barrier; cytoplasm: site of metabolism; nucleoid: DNA; flagellum: motility."}, {"id": "d4_10", "ch": 4, "type": "discuss", "q": "Discuss the properties used to define life and which prokaryotic structures carry them out.", "model": "Growth (wall/membrane synthesis), reproduction (binary fission via the nucleoid), metabolism (ribosomes/enzymes), responsiveness (membrane receptors, flagella/chemotaxis), heredity (nucleoid DNA)."}, {"id": "d4_11", "ch": 4, "type": "discuss", "q": "Describe the basic process of biofilm formation.", "model": "Free-floating cells attach to a surface, secrete an extracellular polysaccharide matrix, recruit more cells (often via quorum sensing), and mature into a structured, protected community."}, {"id": "d4_12", "ch": 4, "type": "discuss", "q": "What leads microbiologists to believe archaea are more closely related to eukaryotes than to bacteria?", "model": "Shared rRNA sequence similarities, similar RNA polymerase and ribosomal proteins, and shared histone-like DNA packaging -- all closer to eukaryotic machinery than to bacteria's."}, {"id": "d4_13", "ch": 4, "type": "discuss", "q": "What's required to kill endospores, and how can spores be dated as thousands/millions of years old?", "model": "Killing requires extended high heat (autoclaving, 121°C for 15+ minutes) or strong chemical sterilants. Their extreme dormancy and resistant coats let viable spores survive and later be recovered from ancient sediment or sealed environments."}, {"id": "d4_14", "ch": 4, "type": "discuss", "q": "Which bacteria has a well-developed capsule, Klebsiella or S. aureus? Defend your answer.", "model": "Klebsiella -- encapsulated colonies look large, moist, and mucoid/gummy on agar (e.g., CHROMagar), unlike S. aureus's smaller, non-mucoid colonies."}, {"id": "d4_15", "ch": 4, "type": "discuss", "q": "Why do Clostridium cells stain unevenly under the Gram stain?", "model": "Their endospores don't take up Gram stains, appearing as clear, unstained refractive ovals within the stained vegetative cell body.", "terms": ["Gram stain"]}, {"id": "c5_01", "ch": 5, "type": "mc", "q": "Flagella and cilia are found primarily in", "opts": ["Algae", "Protozoa", "Fungi", "Both a and b"], "correct": 1, "exp": "Protozoa commonly use flagella/cilia for locomotion."}, {"id": "c5_02", "ch": 5, "type": "mc", "q": "Features of the nuclear envelope include", "opts": ["Ribosomes", "A double membrane structure", "Pores that allow communication with the cytoplasm", "b and c"], "correct": 3, "exp": "The nuclear envelope is a double membrane with pores -- both b and c."}, {"id": "c5_03", "ch": 5, "type": "mc", "q": "The cell wall is usually found in which eukaryotes?", "opts": ["Fungi", "Algae", "Protozoa", "a and b"], "correct": 3, "exp": "Fungi and algae have cell walls; protozoa and animal cells do not -- cell walls are NOT universal in eukaryotes."}, {"id": "c5_04", "ch": 5, "type": "mc", "q": "What is embedded in rough endoplasmic reticulum?", "opts": ["Ribosomes", "Golgi apparatus", "Chromatin", "Vesicles"], "correct": 0, "exp": "Ribosomes studding the ER make it “rough.”"}, {"id": "c5_05", "ch": 5, "type": "mc", "q": "Yeasts are ______ fungi, and molds are ______ fungi.", "opts": ["macroscopic, microscopic", "unicellular, filamentous", "motile, nonmotile", "water, terrestrial"], "correct": 1, "exp": "Yeasts: single-celled. Molds: filamentous (hyphae/mycelium)."}, {"id": "c5_06", "ch": 5, "type": "mc", "q": "In general, fungi derive nutrients through", "opts": ["Photosynthesis", "Engulfing bacteria", "Digesting organic substrates", "Parasitism"], "correct": 2, "exp": "Fungi are heterotrophic saprobes/parasites that secrete enzymes to digest organic matter externally."}, {"id": "c5_07", "ch": 5, "type": "mc", "q": "A hypha divided into compartments by cross walls is called", "opts": ["Nonseptate", "Imperfect", "Septate", "Perfect"], "correct": 2, "exp": "Septate hyphae have cross-walls (septa); nonseptate (coenocytic) do not."}, {"id": "c5_08", "ch": 5, "type": "mc", "q": "Algae generally contain some type of", "opts": ["Spore", "Chlorophyll", "Locomotor organelle", "Toxin"], "correct": 1, "exp": "Chlorophyll enables algae's photosynthesis."}, {"id": "c5_09", "ch": 5, "type": "mc", "q": "Which algal group is most closely related to plants?", "opts": ["Diatoms", "Chlorophyta", "Euglenophyta", "Dinoflagellates"], "correct": 1, "exp": "Chlorophyta (green algae) share a common ancestor with land plants."}, {"id": "c5_10", "ch": 5, "type": "mc", "q": "Which characteristic is not typical of protozoan cells?", "opts": ["Locomotor organelle", "Cyst", "Spore", "Trophozoite"], "correct": 2, "exp": "Protozoa form cysts (not spores) as a resistant/dormant stage."}, {"id": "c5_11", "ch": 5, "type": "mc", "q": "The protozoan trophozoite is the", "opts": ["Active feeding stage", "Inactive dormant stage", "Infective stage", "Spore-forming stage"], "correct": 0, "exp": "Trophozoite = the active, feeding/motile form (vs. the dormant cyst)."}, {"id": "c5_12", "ch": 5, "type": "mc", "q": "Humans are infected with Plasmodium through the bite of a", "opts": ["Fly", "Kissing bug", "Mosquito", "Worm"], "correct": 2, "exp": "Anopheles mosquitoes transmit malaria (Plasmodium)."}, {"id": "c5_13", "ch": 5, "type": "mc", "q": "Parasitic helminths reproduce with", "opts": ["Spores", "Eggs and sperm", "Mitosis", "Cysts"], "correct": 1, "exp": "Helminths are animals and reproduce sexually via eggs and sperm."}, {"id": "c5_14", "ch": 5, "type": "mc", "q": "Mitochondria likely originated from", "opts": ["Archaea", "Invaginations of the cell membrane", "Bacteria", "Cyanobacteria"], "correct": 2, "exp": "Mitochondria descend from engulfed aerobic bacteria (endosymbiotic theory); chloroplasts descend from cyanobacteria."}, {"id": "c5_15", "ch": 5, "type": "mc", "q": "Human fungal infections involve and affect what areas of the human body?", "opts": ["Skin", "Mucous membranes", "Lungs", "All of these"], "correct": 3, "exp": "Fungal infections (mycoses) can affect skin, mucous membranes, and lungs."}, {"id": "c5_16", "ch": 5, "type": "tf", "q": "All eukaryotic cells have a cell wall.", "correct": false, "exp": "False -- a common trick answer. Fungi, algae, and plants have cell walls; protozoa and animal cells do not."}, {"id": "c5_17", "ch": 5, "type": "mc", "q": "Evidence supporting the endosymbiotic theory for mitochondria and chloroplasts includes all of the following EXCEPT:", "opts": ["They contain their own circular DNA", "They have 70S (bacteria-sized) ribosomes", "They divide independently via binary fission", "They are surrounded by a single membrane"], "correct": 3, "exp": "They're surrounded by a DOUBLE membrane, not a single one -- that's the exception/trap."}, {"id": "c5_18", "ch": 5, "type": "mc", "q": "A budding yeast cell that fails to fully separate from its parent, forming a chain of cells, is called a:", "opts": ["Hypha", "Pseudohypha", "Mycelium", "Conidium"], "correct": 1, "exp": "Pseudohyphae are chains of incompletely separated budding yeast cells."}, {"id": "d5_01", "ch": 5, "type": "discuss", "q": "Describe algae's principal characteristics that separate them from protozoa.", "model": "Algae are photosynthetic (contain chlorophyll, often have a cell wall); protozoa are heterotrophic and motile, lacking a wall."}, {"id": "d5_02", "ch": 5, "type": "discuss", "q": "How are algae medically important? Give examples.", "model": "Some produce toxins (e.g., red tide dinoflagellates causing paralytic shellfish poisoning); diatoms have industrial uses; most matter ecologically (oxygen production, food chains) rather than being directly pathogenic."}, {"id": "d5_03", "ch": 5, "type": "discuss", "q": "Explain the general characteristics of the protozoan life cycle.", "model": "Alternates between an active, feeding trophozoite stage and a dormant, resistant cyst stage used for transmission and survival."}, {"id": "d5_04", "ch": 5, "type": "discuss", "q": "Identify the supergroups that contain protozoans, and name important pathogens in each.", "model": "E.g., Excavata (Giardia, Trichomonas), Amoebozoa (Entamoeba), Alveolata (Plasmodium, Toxoplasma) -- each with distinct medically important species."}, {"id": "d5_05", "ch": 5, "type": "discuss", "q": "Discuss the adaptations of parasitic worms to their lifestyle.", "model": "Reduced digestive/sensory systems, a protective cuticle, hooks/suckers for attachment, and enormous reproductive output to offset low transmission success."}, {"id": "d5_06", "ch": 5, "type": "discuss", "q": "Outline the basic steps in a protozoan/helminth infection cycle.", "model": "Transmission of an infective form (cyst, or egg/larva) leads to establishment in host tissue, maturation and reproduction, then release of new infective forms back into the environment."}, {"id": "d5_07", "ch": 5, "type": "discuss", "q": "Describe the anatomy and function of the major eukaryotic organelles.", "model": "Nucleus (genetic control), mitochondria (ATP via aerobic respiration), ER (rough: protein synthesis/processing; smooth: lipid synthesis), Golgi (packaging/sorting), lysosomes (digestion), chloroplasts (photosynthesis, in algae)."}, {"id": "d5_08", "ch": 5, "type": "discuss", "q": "Trace the synthesis, processing, and packaging of cell products through the organelle network.", "model": "Ribosomes on rough ER synthesize proteins, the ER folds/modifies them, they're transported to the Golgi for further modification/sorting, then packaged into vesicles and sent to their destination."}, {"id": "d5_09", "ch": 5, "type": "discuss", "q": "(a) What is the reproductive potential of molds in terms of spores? (b) How do mold spores differ from bacterial endospores?", "model": "(a) Molds can produce enormous numbers of spores for widespread dispersal and reproduction. (b) Mold spores are reproductive (increase cell number); bacterial endospores are a single dormant survival structure, not for multiplication."}, {"id": "d5_10", "ch": 5, "type": "discuss", "q": "Compare eukaryotic organelles/structures across fungi, algae, and protozoa.", "model": "Cell wall: fungi (chitin) and algae (cellulose/silica) have one, protozoa do not. Chloroplasts: algae only. Flagella/cilia: common in protozoa and some algae. Spores: fungi (asexual/sexual) and some protozoa (oocysts)."}, {"id": "d5_11", "ch": 5, "type": "discuss", "q": "Explain the ways mitochondria resemble bacteria and chloroplasts resemble cyanobacteria.", "model": "Both organelles have their own circular DNA, 70S ribosomes, double membranes, and divide by binary fission independent of the host cell cycle -- strong evidence for endosymbiotic origin."}, {"id": "d5_12", "ch": 5, "type": "discuss", "q": "Give the common name of a eukaryotic microbe that is unicellular, walled, nonphotosynthetic, nonmotile, and bud-forming.", "model": "Yeast."}, {"id": "d5_13", "ch": 5, "type": "discuss", "q": "How are eukaryotic ribosomes and cell membranes different from those of prokaryotes?", "model": "Eukaryotic ribosomes are larger (80S vs. 70S), and membranes contain sterols (e.g., cholesterol) that most prokaryotic membranes lack."}, {"id": "d5_14", "ch": 5, "type": "discuss", "q": "What general type of multicellular parasite is composed primarily of thin sacs of reproductive organs?", "model": "Cestode (tapeworm)."}, {"id": "d5_15", "ch": 5, "type": "discuss", "q": "(a) Name two parasites transmitted in cyst form. (b) How must a non-cyst-forming protozoan be transmitted, and why?", "model": "(a) Entamoeba histolytica, Giardia lamblia. (b) Must transmit directly (e.g., sexual contact for Trichomonas vaginalis) since fragile trophozoites die quickly outside a host without a protective cyst wall."}, {"id": "d5_16", "ch": 5, "type": "discuss", "q": "What factors could make opportunistic mycoses a growing medical problem?", "model": "Rising numbers of immunocompromised patients (chemo, HIV, transplants, diabetes) let normally harmless fungi cause serious infections."}, {"id": "d5_17", "ch": 5, "type": "discuss", "q": "(a) How are bacterial endospores and protozoan cysts alike? (b) How do they differ?", "model": "(a) Both are dormant, resistant survival stages formed under stress. (b) Endospores are far more heat/chemical resistant and don't increase cell number; cysts are part of a parasite's transmission/infection cycle."}, {"id": "d5_18", "ch": 5, "type": "discuss", "q": "For what reasons would a eukaryotic cell evolve an ER and Golgi apparatus?", "model": "To compartmentalize and efficiently manage the much larger volume of protein/lipid synthesis, folding, modification, and sorting needed as cells grew larger and more complex."}, {"id": "d5_19", "ch": 5, "type": "discuss", "q": "Describe a simple test to determine if a child has pinworms.", "model": "The ‘Scotch tape test’ -- press clear tape against the perianal skin first thing in the morning to collect eggs for microscopic examination."}, {"id": "d5_20", "ch": 5, "type": "discuss", "q": "A species shows both hyphae and budding yeast forms depending on conditions -- what's this trait called, and what organisms show it?", "model": "Dimorphism -- seen in dimorphic fungi (e.g., Histoplasma, Blastomyces), which switch forms depending on temperature/environment."}, {"id": "c7_01", "ch": 7, "type": "mc", "q": "An organic nutrient essential to an organism's metabolism that cannot be synthesized itself is termed a/an", "opts": ["Trace element", "Micronutrient", "Growth factor", "Mineral"], "correct": 2, "exp": "A growth factor is an essential organic compound the organism cannot make itself."}, {"id": "c7_02", "ch": 7, "type": "mc", "q": "The source of the necessary elements of life is", "opts": ["An inorganic environmental reservoir", "The sun", "Rocks", "The air"], "correct": 0, "exp": "Elements ultimately come from the inorganic environment (soil, water, air, minerals)."}, {"id": "c7_03", "ch": 7, "type": "mc", "q": "An organism that can synthesize all its required organic components from CO2 using energy from the sun is a", "opts": ["Photoautotroph", "Photoheterotroph", "Chemoautotroph", "Chemoheterotroph"], "correct": 0, "exp": "Photoautotroph: CO2 carbon source + light energy."}, {"id": "c7_04", "ch": 7, "type": "mc", "q": "An obligate halophile requires high", "opts": ["pH", "Temperature", "Salt", "Pressure"], "correct": 2, "exp": "Halophiles need high salt concentrations to survive."}, {"id": "c7_05", "ch": 7, "type": "mc", "q": "Chemoautotrophs can survive on ______ alone.", "opts": ["Minerals", "CO2", "Minerals and CO2", "Methane"], "correct": 2, "exp": "Chemoautotrophs use inorganic minerals for energy and CO2 for carbon."}, {"id": "c7_06", "ch": 7, "type": "mc", "q": "Which of the following substances are required by all organisms?", "opts": ["Organic nutrients", "Inorganic nutrients", "Growth factors", "Oxygen gas"], "correct": 1, "exp": "All organisms need inorganic nutrients; the other options vary by organism type."}, {"id": "c7_07", "ch": 7, "type": "mc", "q": "A pathogen would most accurately be described as a", "opts": ["Parasite", "Commensal", "Saprobe", "Symbiont"], "correct": 0, "exp": "A pathogen is a parasite that causes disease/harm to its host."}, {"id": "c7_08", "ch": 7, "type": "mc", "q": "Which of the following is true of passive transport?", "opts": ["Requires a gradient", "Uses the cell wall", "Includes endocytosis", "Only moves water"], "correct": 0, "exp": "Passive transport moves substances down their concentration gradient, no energy needed."}, {"id": "c7_09", "ch": 7, "type": "mc", "q": "A cell exposed to a hypertonic environment will ______ by osmosis.", "opts": ["Gain water", "Lose water", "Neither gain nor lose water", "Burst"], "correct": 1, "exp": "In a hypertonic environment (more solute outside), water leaves the cell."}, {"id": "c7_10", "ch": 7, "type": "mc", "q": "Active transport of a substance across a membrane requires", "opts": ["A gradient", "The expenditure of ATP", "Water", "Diffusion"], "correct": 1, "exp": "Active transport moves substances against their gradient, which costs ATP."}, {"id": "c7_11", "ch": 7, "type": "mc", "q": "Psychrophiles would be expected to grow", "opts": ["In hot springs", "On the human body", "At refrigeration temperatures", "At low pH"], "correct": 2, "exp": "Psychrophiles are cold-loving, optimal growth below 15°C."}, {"id": "c7_12", "ch": 7, "type": "mc", "q": "Which of the following is not involved in quorum sensing?", "opts": ["Accumulation of inducer molecules", "A certain level of biofilm density", "Self-monitoring", "Release of genetic material"], "correct": 3, "exp": "Quorum sensing relies on inducer molecule accumulation and population density, not DNA release."}, {"id": "c7_13", "ch": 7, "type": "mc", "q": "Superoxide ion is toxic to strict anaerobes because they lack", "opts": ["Catalase", "Peroxidase", "Dismutase", "Oxidase"], "correct": 2, "exp": "Superoxide dismutase neutralizes superoxide radicals; strict anaerobes lack it."}, {"id": "c7_14", "ch": 7, "type": "mc", "q": "The time required for a cell to undergo binary fission is called the", "opts": ["Exponential growth rate", "Growth curve", "Generation time", "Lag period"], "correct": 2, "exp": "Generation (doubling) time is the time per division cycle."}, {"id": "c7_15", "ch": 7, "type": "mc", "q": "In a viable plate count, each ______ represents a ______ from the sample population.", "opts": ["cell, colony", "colony, cell", "hour, generation", "cell, generation"], "correct": 1, "exp": "Each visible colony arose from one viable cell."}, {"id": "c7_16", "ch": 7, "type": "mc", "q": "The stage in population growth with the highest rate of cell division is the", "opts": ["Stationary phase", "Lag phase", "Exponential phase", "Enlargement phase"], "correct": 2, "exp": "Exponential (log) phase has the fastest division rate."}, {"id": "c7_17", "ch": 7, "type": "match", "q": "Match the statement to the symbiotic term it most accurately describes.", "items": ["Mutualism", "Commensalism", "Parasitism"], "rights": ["Organisms living in an obligatory, mutually beneficial relationship", "One organism benefits while the other is neither harmed nor benefited", "One organism is harmed while providing the other with nutrients and a habitat"], "exp": "Mutualism = both benefit; commensalism = one benefits, other unaffected; parasitism = one benefits, other harmed."}, {"id": "c7_18", "ch": 7, "type": "tf", "q": "Microbial growth refers only to an increase in the number of cells in a population.", "correct": false, "exp": "False -- growth has two aspects: (1) an individual cell synthesizing components and increasing in size, and (2) the population's cell number increasing."}, {"id": "c7_19", "ch": 7, "type": "fill", "q": "With respect to oxygen requirements, an ______ can use gaseous oxygen and possesses enzymes to process toxic oxygen byproducts.", "answers": ["aerobe"], "exp": "Aerobes use O2 and can detoxify its reactive byproducts."}, {"id": "c7_20", "ch": 7, "type": "fill", "q": "An ______ aerobe cannot grow without oxygen.", "answers": ["obligate"], "exp": "Obligate aerobes absolutely require O2."}, {"id": "c7_21", "ch": 7, "type": "fill", "q": "Organisms called ______ metabolize by aerobic respiration but can adapt to anaerobic environments.", "answers": ["facultative anaerobes", "facultative anaerobe"], "exp": "Facultative anaerobes switch between aerobic and anaerobic metabolism."}, {"id": "c7_22", "ch": 7, "type": "fill", "q": "______ fall into the oxygen-requirement group that can only tolerate very minute concentrations of oxygen.", "answers": ["microaerophiles", "microaerophile"], "exp": "Microaerophiles need a little O2, but not much."}, {"id": "c7_23", "ch": 7, "type": "fill", "q": "Organisms that lack the enzymes needed to use oxygen in respiration, and may not tolerate any free oxygen at all, are called ______.", "answers": ["anaerobes", "anaerobe", "strict anaerobes"], "exp": "Anaerobes (strict anaerobes) lack oxygen-detoxifying enzymes entirely."}, {"id": "c7_24", "ch": 7, "type": "match", "q": "Match the bioelement to the statement describing its role.", "items": ["Carbon", "Oxygen", "Potassium", "Phosphorus", "Calcium", "Iron"], "rights": ["Product of respiration and used in photosynthesis", "Necessary for nutrient metabolism by aerobes; a significant element in organic and inorganic compounds", "Plays a role in protein synthesis and membrane transport", "Key component of genetic material in cells", "Stabilizes cell walls and adds resistance to bacterial endospores", "Essential element for the structure of respiratory proteins"], "exp": "Bioelements each have distinct structural/metabolic roles -- phosphorus for DNA/RNA, calcium for endospore resistance, iron for respiratory proteins.", "terms": ["bioelements"]}, {"id": "c7_25", "ch": 7, "type": "mc", "q": "Which mnemonic lists the essential bioelements (SPONCH and beyond)?", "opts": ["“Dear King Philip Came Over For Good Soup”", "“Come In And Stain”", "“C HOPKINS CaFe Na Cl Mgood”", "“King Phillip Came Over For Good Spaghetti”"], "correct": 2, "exp": "C HOPKINS CaFe Na Cl Mgood = Carbon, Hydrogen, Oxygen, Phosphorus, Potassium, Iodine, Nitrogen, Sulfur, Calcium, Iron, Sodium, Chlorine, Magnesium.", "terms": ["bioelements"]}, {"id": "d7_01", "ch": 7, "type": "discuss", "q": "Predict the direction of osmosis between two solutions; which microbe is a halophile?", "model": "Water moves toward the side with higher solute concentration (the hypertonic side). A microbe needing roughly 10% external salt to stay in osmotic balance is a halophile."}, {"id": "d7_02", "ch": 7, "type": "discuss", "q": "Describe the basic metabolism of methanogens.", "model": "They combine H2 and CO2 anaerobically to produce methane (CH4) and water, generating ATP via chemoautotrophy."}, {"id": "d7_03", "ch": 7, "type": "discuss", "q": "Discuss extreme environments and the extremophiles that live there.", "model": "Hyperthermophiles (hydrothermal vents), psychrophiles (glaciers/polar regions), obligate halophiles (salt lakes/Dead Sea), barophiles (deep ocean trenches)."}, {"id": "d7_04", "ch": 7, "type": "discuss", "q": "Differentiate mutualism and syntrophy, with examples.", "model": "Mutualism is an obligatory, tightly co-dependent partnership (e.g., termites and their gut protozoan Trichonympha); syntrophy is a looser, non-obligatory cross-feeding relationship between species (e.g., Azotobacter and Cellulomonas)."}, {"id": "d7_05", "ch": 7, "type": "discuss", "q": "(a) What biochemical events let a biofilm act as a unit via quorum sensing? (b) How does biofilm self-monitoring favor infection?", "model": "(a) Accumulating inducer molecules reach a threshold concentration, triggering synchronized gene expression across the population. (b) Coordinated, simultaneous release of toxins/enzymes can overwhelm host defenses before detection."}, {"id": "d7_06", "ch": 7, "type": "discuss", "q": "Explain growth-curve stages A through D.", "model": "A = Lag (adjusting, little division); B = Exponential/Log (fastest division rate); C = Stationary (nutrients limit growth, death rate approx. equals division rate); D = Death (nutrients depleted, cells dying faster than dividing)."}, {"id": "d7_07", "ch": 7, "type": "discuss", "q": "Fill in a nutritional summary table (carbon source, energy source, example) for photoautotroph, photoheterotroph, chemoautotroph, chemoheterotroph, saprobe, and parasite.", "model": "Photoautotroph: CO2 / light / cyanobacteria. Photoheterotroph: organic / light / some purple non-sulfur bacteria. Chemoautotroph: CO2 / inorganic chemicals / nitrifying bacteria. Chemoheterotroph: organic / organic / most bacteria, fungi, protozoa, humans. Saprobe: organic (dead matter) / organic / decomposers. Parasite: organic (living host) / organic / pathogens."}, {"id": "d7_08", "ch": 7, "type": "discuss", "q": "(a) Could a microbe grow on a medium with only CaCO3, MgNO3, FeCl2, ZnSO4, and glucose? (b) Explain the mnemonic ‘C HOPKINS CaFe Na Cl Mgood.’", "model": "(a) No -- phosphorus is missing, and it's an essential bioelement (SPONCH). (b) Carbon, Hydrogen, Oxygen, Phosphorus, Potassium, Iodine, Nitrogen, Sulfur, Calcium, Iron, Sodium, Chlorine, Magnesium -- the essential bioelements.", "terms": ["bioelements"]}, {"id": "d7_09", "ch": 7, "type": "discuss", "q": "How would you determine the nutrient requirements of a microbe from Mars?", "model": "Systematically test growth on minimal media, omitting one element/compound at a time, to see which are essential."}, {"id": "d7_10", "ch": 7, "type": "discuss", "q": "Why are diabetic ketoacidosis patients susceptible to fungal infections?", "model": "High blood glucose plus lowered pH create an acidic, nutrient-rich environment favoring opportunistic fungi like Rhizopus and Mucor."}, {"id": "d7_11", "ch": 7, "type": "discuss", "q": "How do osmotic pressure and pH contribute to food preservation?", "model": "High salt/sugar creates a hypertonic environment causing plasmolysis in microbes; acidic pH inhibits enzymes of typical spoilage/pathogenic bacteria."}, {"id": "d7_12", "ch": 7, "type": "discuss", "q": "How can anaerobic infections be treated by manipulating gas content?", "model": "Hyperbaric oxygen therapy floods tissue with high-pressure O2, generating toxic superoxide radicals that kill obligate anaerobes like Clostridium perfringens."}, {"id": "d7_13", "ch": 7, "type": "discuss", "q": "Can anaerobes and aerobes coexist in the same habitat?", "model": "Yes -- in microenvironments like dental plaque or gut biofilms, aerobes consume available O2, creating anaerobic pockets where strict anaerobes thrive nearby."}, {"id": "d7_14", "ch": 7, "type": "discuss", "q": "A food sample has 40,960 cells after 4 hours. Project the count after 1 more hour, and after 10 more hours.", "model": "+1 hour (3 generations): 40,960 × 2^3 = 327,680 cells. +10 hours (30 generations): 40,960 × 2^30 ≈ 4.39×10^13 cells -- illustrating why proper refrigeration matters."}, {"id": "d7_15", "ch": 7, "type": "discuss", "q": "Explain Beijerinck's idea: ‘Everything is everywhere, the environment selects.’", "model": "Microbes are dispersed virtually everywhere, but only the specific local conditions (temperature, chemistry, pH) allow particular species to actually grow and dominate."}, {"id": "d7_16", "ch": 7, "type": "discuss", "q": "Compare a mutualistic endosymbiont to a parasitic endosymbiont.", "model": "Both live inside host cells; a mutualistic endosymbiont provides the host useful nutrients/metabolites, while a parasitic endosymbiont drains the host's resources and causes damage."}, {"id": "d7_17", "ch": 7, "type": "discuss", "q": "Graph a psychrophile's vs. an obligate thermophile's growth curve by temperature.", "model": "Psychrophile: growth peaks below 15°C (roughly -15°C to 20°C range). Obligate thermophile: growth peaks above 60-80°C (roughly 45°C to 100°C+ range)."}, {"id": "d7_18", "ch": 7, "type": "discuss", "q": "Explain a viable plate count calculation from serial dilutions.", "model": "Multiply the colony count on a countable plate by the reciprocal of its dilution factor (accounting for volume plated) to back-calculate the total CFU/mL in the original sample."}, {"id": "c8_01", "ch": 8, "type": "mc", "q": "______ is another term for biosynthesis.", "opts": ["Catabolism", "Anabolism", "Metabolism", "Catalyst"], "correct": 1, "exp": "Anabolism = building up/synthesis; catabolism = breaking down."}, {"id": "c8_02", "ch": 8, "type": "mc", "q": "Catabolism is a form of metabolism in which ______ are transformed into ______.", "opts": ["larger, smaller", "smaller, larger", "amino acid, protein", "glucose, starch"], "correct": 0, "exp": "Catabolism breaks larger molecules into smaller ones, releasing energy."}, {"id": "c8_03", "ch": 8, "type": "mc", "q": "An enzyme ______ the activation energy required for a chemical reaction.", "opts": ["increases", "converts", "lowers", "catalyzes"], "correct": 2, "exp": "Enzymes lower the activation energy barrier."}, {"id": "c8_04", "ch": 8, "type": "mc", "q": "An enzyme", "opts": ["Becomes part of the final products", "Is nonspecific for substrate", "Is consumed by the reaction", "Is heat and pH labile"], "correct": 3, "exp": "Enzymes are sensitive to heat and pH (can denature); they are specific and not consumed."}, {"id": "c8_05", "ch": 8, "type": "mc", "q": "Catalysis occurs at the ______ site of an enzyme.", "opts": ["cofactor", "allosteric", "redox", "active"], "correct": 3, "exp": "The active site is where substrate binds and the reaction is catalyzed."}, {"id": "c8_06", "ch": 8, "type": "mc", "q": "Many coenzymes contain", "opts": ["Metals", "Vitamins", "Proteins", "Substrates"], "correct": 1, "exp": "Many coenzymes are vitamin-derived (e.g., NAD+ from niacin)."}, {"id": "c8_07", "ch": 8, "type": "mc", "q": "To digest cellulose in its environment, a fungus produces a/an", "opts": ["Endoenzyme", "Exoenzyme", "Catalase", "Polymerase"], "correct": 1, "exp": "Exoenzymes are secreted outside the cell to digest material in the environment.", "terms": ["enzyme vocab"]}, {"id": "c8_08", "ch": 8, "type": "mc", "q": "Energy in biological systems is primarily", "opts": ["Electrical", "Chemical", "Radiant", "Mechanical"], "correct": 1, "exp": "Biological energy is stored and transferred chemically (e.g., in ATP bonds)."}, {"id": "c8_09", "ch": 8, "type": "mc", "q": "Energy is carried from catabolic to anabolic reactions in the form of ______.", "opts": ["ADP", "high-energy ATP bonds", "coenzymes", "inorganic phosphate"], "correct": 1, "exp": "ATP's high-energy phosphate bonds shuttle energy between reactions."}, {"id": "c8_10", "ch": 8, "type": "mc", "q": "Exergonic reactions", "opts": ["Release potential energy", "Consume energy", "Form bonds", "Occur only outside the cell"], "correct": 0, "exp": "Exergonic = energy-releasing (vs. endergonic = energy-consuming)."}, {"id": "c8_11", "ch": 8, "type": "mc", "q": "A reduced compound is", "opts": ["NAD+", "FAD", "NADH", "ADP"], "correct": 2, "exp": "NADH is the reduced (electron-carrying) form; NAD+ is oxidized."}, {"id": "c8_12", "ch": 8, "type": "mc", "q": "Most oxidation reactions in microbial bioenergetics involve the", "opts": ["Removal of electrons", "Addition of electrons", "Addition of oxygen", "Removal of oxygen"], "correct": 0, "exp": "Oxidation = loss of electrons (often as hydrogen atoms); reduction = gain."}, {"id": "c8_13", "ch": 8, "type": "mc", "q": "A product or products of glycolysis is/are", "opts": ["ATP", "Pyruvic acid", "CO2", "Both a and b"], "correct": 3, "exp": "Glycolysis produces both net ATP and pyruvic acid (no CO2)."}, {"id": "c8_14", "ch": 8, "type": "mc", "q": "Fermentation of a glucose molecule has the potential to produce a net number of ______ ATPs.", "opts": ["4", "2", "38", "32"], "correct": 1, "exp": "Fermentation nets only 2 ATP (from glycolysis) -- no ETC involved."}, {"id": "c8_15", "ch": 8, "type": "mc", "q": "Complete oxidation of glucose in aerobic respiration by a eukaryote could potentially yield a net maximum output of ______ ATPs.", "opts": ["40", "30", "38", "2"], "correct": 2, "exp": "Theoretical max is often cited as 38 ATP (36-38 in eukaryotes due to shuttle costs)."}, {"id": "c8_16", "ch": 8, "type": "mc", "q": "The compound that enters the Krebs cycle is", "opts": ["Citric acid", "Oxaloacetic acid", "Pyruvic acid", "Acetyl coenzyme A"], "correct": 3, "exp": "Acetyl-CoA (from pyruvate via the transition step) enters the Krebs cycle, combining with oxaloacetic acid to form citric acid."}, {"id": "c8_17", "ch": 8, "type": "mc", "q": "The FADH2 formed during the Krebs cycle enters the electron transport system at which site?", "opts": ["NADH dehydrogenase", "Complex II", "Complex IV", "ATP synthase"], "correct": 1, "exp": "FADH2 feeds electrons in at Complex II (lower energy entry than NADH at Complex I)."}, {"id": "c8_18", "ch": 8, "type": "mc", "q": "The proton motive force is the result of", "opts": ["ATP synthase transporting protons during ATP synthesis", "An electron gradient between the matrix and intermembrane space", "A proton gradient between the matrix and intermembrane space of a mitochondrion", "A buildup of negatively charged ions"], "correct": 2, "exp": "The PMF is a proton (H+) gradient, not an electron gradient."}, {"id": "c8_19", "ch": 8, "type": "mc", "q": "Photosynthetic organisms convert the energy of ______ into chemical energy.", "opts": ["Electrons", "Protons", "Photons", "Hydrogen atoms"], "correct": 2, "exp": "Photons (light energy) are converted into chemical energy (ATP/NADPH)."}, {"id": "c8_20", "ch": 8, "type": "mc", "q": "The Calvin cycle operates during which part of photosynthesis?", "opts": ["Only the light-dependent phase", "Only in the dark", "The light-independent phase", "Only during photosystem I"], "correct": 2, "exp": "The Calvin cycle is the light-independent phase (it can run in light, just doesn't require it directly)."}, {"id": "c8_21", "ch": 8, "type": "mc", "q": "The oxygen produced by photosynthesis comes from", "opts": ["CO2", "NO3", "H2O", "Glucose"], "correct": 2, "exp": "Photolysis of water releases O2 during the light-dependent reactions."}, {"id": "c8_22", "ch": 8, "type": "match", "q": "Match each metabolic event to the process it belongs to (glycolysis, Krebs cycle, or electron transport/oxidative phosphorylation).", "items": ["H+ and electrons are delivered to O2 as the final electron acceptor", "Pyruvic acid is formed", "ATP is produced", "H2O is produced", "CO2 is formed", "Fructose diphosphate is split into two 3-carbon fragments", "NADH is oxidized", "ATP synthase is active"], "rights": ["Electron transport chain", "Glycolysis", "All three (glycolysis, Krebs cycle, and electron transport)", "Electron transport chain", "Krebs cycle", "Glycolysis", "Electron transport chain", "Electron transport chain"], "exp": "ATP is produced at all three stages; CO2 only in the Krebs cycle; O2 and H2O only at the electron transport chain."}, {"id": "c8_23", "ch": 8, "type": "tf", "q": "The Krebs cycle provides a significant means to synthesize a small amount of ATP in the absence of oxygen and also to generate pyruvic acid, an essential intermediary metabolite.", "correct": false, "exp": "False -- that description is glycolysis, not the Krebs cycle. Glycolysis makes pyruvic acid, which then enters the Krebs cycle."}, {"id": "c8_24", "ch": 8, "type": "tf", "q": "The Krebs cycle allows the acetyl groups from the breakdown (beta oxidation) of certain fats to enter the pathway and be used as an energy source.", "correct": true, "exp": "True -- fatty acid breakdown feeds acetyl-CoA into the Krebs cycle."}, {"id": "c8_25", "ch": 8, "type": "mc", "q": "Protons (H+) released during electron transport:", "opts": ["Act as coenzymes", "Are passed along the electron transport chain along with the electrons", "Are the terminal electron acceptors", "Are pumped across the membrane, creating the proton motive force"], "correct": 3, "exp": "Protons are pumped across the membrane (not carried along with the electrons) to build the proton motive force."}, {"id": "c8_26", "ch": 8, "type": "mc", "q": "In aerobic respiration, oxygen acts as:", "opts": ["A carrier of electrons, passing them down the chain", "A reducing agent", "The terminal electron acceptor", "A coenzyme"], "correct": 2, "exp": "O2 is the final electron acceptor in aerobic respiration, forming H2O."}, {"id": "c8_27", "ch": 8, "type": "fill", "q": "Glycolysis produces 4 ATP via substrate-level phosphorylation but uses 2 to start, for a net of ______ ATP.", "answers": ["2", "two"], "exp": "Net ATP from glycolysis = 2 (gross 4 minus the 2 invested).", "terms": ["ATP yield"]}, {"id": "c8_28", "ch": 8, "type": "mc", "q": "An enzyme consisting only of the protein portion, without its required cofactor, is called a(n):", "opts": ["Holoenzyme", "Apoenzyme", "Coenzyme", "Exoenzyme"], "correct": 1, "exp": "Apoenzyme = protein-only, inactive without its cofactor.", "terms": ["enzyme vocab"]}, {"id": "c8_29", "ch": 8, "type": "mc", "q": "The complete, active enzyme -- apoenzyme plus its cofactor -- is called a(n):", "opts": ["Holoenzyme", "Apoenzyme", "Coenzyme", "Endoenzyme"], "correct": 0, "exp": "Holoenzyme = apoenzyme + cofactor/coenzyme = the fully functional enzyme.", "terms": ["enzyme vocab"]}, {"id": "c8_30", "ch": 8, "type": "mc", "q": "An enzyme that functions inside the cell, as opposed to being secreted, is called a(n):", "opts": ["Exoenzyme", "Endoenzyme", "Coenzyme", "Apoenzyme"], "correct": 1, "exp": "Endoenzyme = functions intracellularly; exoenzyme = secreted to act outside the cell.", "terms": ["enzyme vocab"]}, {"id": "d8_01", "ch": 8, "type": "discuss", "q": "Indicate whether O2, ATP, NADPH, and glucose are produced during the light-dependent or light-independent reactions.", "model": "Light-dependent: O2, ATP, NADPH. Light-independent (Calvin cycle): glucose (using the ATP/NADPH supplied by the light reactions)."}, {"id": "d8_02", "ch": 8, "type": "discuss", "q": "During which reactions are water and CO2 consumed, and what's the outcome?", "model": "Water is consumed (split) in the light-dependent reactions, releasing O2, electrons, and H+. CO2 is consumed in the light-independent (Calvin cycle) reactions, ultimately forming glucose."}, {"id": "d8_03", "ch": 8, "type": "discuss", "q": "What are the functions of chlorophyll and the photosystems?", "model": "Chlorophyll absorbs light energy; photosystems (I and II) use that captured energy to excite and pass electrons along, driving ATP and NADPH production."}, {"id": "d8_04", "ch": 8, "type": "discuss", "q": "What are the fates of ATP and NADPH in the Calvin cycle?", "model": "Both are consumed as energy/reducing power to fix CO2 into organic carbon (glucose), regenerating ADP and NADP+ for the light reactions."}, {"id": "d8_05", "ch": 8, "type": "discuss", "q": "Compare oxygenic with anoxygenic photosynthesis.", "model": "Oxygenic (plants, algae, cyanobacteria) splits water, releasing O2. Anoxygenic (green/purple sulfur bacteria) uses electron donors like H2S instead of water, so no O2 is produced."}, {"id": "d8_06", "ch": 8, "type": "discuss", "q": "Name the general enzyme type that: (a) converts citrate to isocitrate (b) reduces pyruvic acid to lactic acid (c) reduces nitrate to nitrite.", "model": "(a) Isomerase. (b) Lactate dehydrogenase (a reductase/dehydrogenase). (c) Nitrate reductase."}, {"id": "d8_07", "ch": 8, "type": "discuss", "q": "Explain what's unique about ATP synthase's action.", "model": "It's a molecular turbine -- protons flowing down their gradient through it physically spin a rotor component, mechanically driving ATP synthesis from ADP + Pi (chemiosmosis)."}, {"id": "d8_08", "ch": 8, "type": "discuss", "q": "Compare the general equation for aerobic metabolism with its summary -- verify totals and where reactions occur.", "model": "Overall: glucose + O2 -> CO2 + H2O + ATP. Glycolysis occurs in the cytoplasm, the Krebs cycle in the mitochondrial matrix, and the electron transport chain on the inner mitochondrial membrane."}, {"id": "d8_09", "ch": 8, "type": "discuss", "q": "Describe four requirements for fermentation to occur.", "model": "An organic substrate (e.g., glucose), glycolysis enzymes, an organic final electron acceptor (e.g., pyruvate or its derivative), and anaerobic (or O2-independent) conditions, mainly to regenerate NAD+."}, {"id": "d8_10", "ch": 8, "type": "discuss", "q": "Is fermentation catabolic or anabolic? Explain.", "model": "Catabolic -- it breaks down glucose to release a small amount of ATP, without building larger molecules."}, {"id": "d8_11", "ch": 8, "type": "discuss", "q": "Name three electron carriers and their essential vitamins; explain their role.", "model": "NAD+ (niacin/B3), FAD (riboflavin/B2), coenzyme A (pantothenic acid/B5) -- they shuttle electrons/hydrogens between reactions, linking catabolic energy release to ATP production."}, {"id": "d8_12", "ch": 8, "type": "discuss", "q": "Explain similarities/differences between anaerobic respiration and fermentation.", "model": "Both occur without O2 and regenerate NAD+. But anaerobic respiration still uses an electron transport chain (with a non-oxygen final acceptor like nitrate/sulfate) and yields much more ATP; fermentation has no ETC and yields only the small net ATP from glycolysis."}, {"id": "d8_13", "ch": 8, "type": "discuss", "q": "Diagram the energetics of a reaction with and without an enzyme.", "model": "Both start/end at the same reactant/product energy levels, but the catalyzed reaction has a much lower activation-energy peak -- enzymes speed up the reaction without changing its overall energy change."}, {"id": "d8_14", "ch": 8, "type": "discuss", "q": "Explain the ‘biochemical circle of life’ between phototrophs and heterotrophs.", "model": "Phototrophs capture light energy to build organic molecules and release O2; heterotrophs consume those organic molecules and O2, releasing CO2 and H2O back to the phototrophs -- a continuous cycle."}, {"id": "d8_15", "ch": 8, "type": "discuss", "q": "How can some microbes survive and grow in the presence of cyanide?", "model": "They may use alternative, cyanide-insensitive terminal oxidases in their electron transport chain, bypassing the cytochrome complex that cyanide normally blocks."}, {"id": "d8_16", "ch": 8, "type": "discuss", "q": "What are the advantages of staging metabolic pathways in specific membranes/organelles rather than free in the cytoplasm?", "model": "Compartmentalization concentrates enzymes/substrates for efficiency, allows ion gradients (like the proton motive force) to be established and used, and separates competing reactions."}, {"id": "d8_17", "ch": 8, "type": "discuss", "q": "Two allosteric enzymes regulate glycolysis (phosphoglucoisomerase, pyruvate kinase) -- what might regulate them?", "model": "Typically downstream products/energy signals -- e.g., high ATP or citrate levels inhibiting early glycolytic enzymes (feedback inhibition), while ADP/AMP can activate them when energy is low."}, {"id": "d8_18", "ch": 8, "type": "discuss", "q": "Beer brewing needs early aerobic yeast metabolism, yet anaerobic conditions are needed to make alcohol -- why?", "model": "Yeast initially grows and reproduces rapidly using aerobic respiration (building up biomass); only once oxygen is depleted does fermentation take over to produce ethanol."}, {"id": "d8_19", "ch": 8, "type": "discuss", "q": "What pH would you expect in the mitochondrial matrix vs. intermembrane space, and the chloroplast stroma vs. thylakoid lumen? Why?", "model": "The intermembrane space and thylakoid lumen are more acidic (proton-rich) due to pumped H+ accumulation; the matrix and stroma are comparatively more basic, since protons are pumped out of/into those compartments to form the gradient."}, {"id": "d8_20", "ch": 8, "type": "discuss", "q": "Where do ATP molecules collect after being made by ATP synthase in the mitochondrion/chloroplast, and what's the advantage?", "model": "In the mitochondrial matrix and the chloroplast stroma, respectively -- right where the cell's biosynthetic reactions that need ATP are occurring."}, {"id": "d8_21", "ch": 8, "type": "discuss", "q": "Explain the relationship between enzyme sensitivity and microbial environmental adaptations.", "model": "Microbes' enzymes are finely tuned (in structure/stability) to function optimally at the temperature, pH, and salinity of their native environment -- exactly why extremophiles have differently adapted enzymes than mesophiles."}, {"id": "d8_22", "ch": 8, "type": "discuss", "q": "Why wouldn't antibiotics work as therapy for botulism?", "model": "Botulism is caused by a preformed toxin; killing the bacteria with antibiotics doesn't neutralize toxin already present, so antitoxin, not antibiotics, is the needed treatment."}, {"id": "g1", "ch": 4, "type": "diagram", "q": "Label the numbered parts of this generalized bacterial cell (outer to inner, plus the appendage).", "svg": "<svg viewBox=\"0 0 400 260\" xmlns=\"http://www.w3.org/2000/svg\"><ellipse cx=\"200\" cy=\"140\" rx=\"170\" ry=\"95\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-dasharray=\"4 3\"/><ellipse cx=\"200\" cy=\"140\" rx=\"150\" ry=\"80\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\"/><ellipse cx=\"200\" cy=\"140\" rx=\"135\" ry=\"68\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><ellipse cx=\"170\" cy=\"150\" rx=\"38\" ry=\"18\" fill=\"currentColor\" opacity=\"0.25\"/><line x1=\"30\" y1=\"140\" x2=\"-20\" y2=\"140\" stroke=\"currentColor\" stroke-width=\"3\"/><path d=\"M -20 140 Q -40 120 -55 140 Q -40 160 -20 140\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><text x=\"200\" y=\"30\" text-anchor=\"middle\" font-size=\"13\" fill=\"currentColor\">1</text><text x=\"200\" y=\"55\" text-anchor=\"middle\" font-size=\"13\" fill=\"currentColor\">2</text><text x=\"200\" y=\"78\" text-anchor=\"middle\" font-size=\"13\" fill=\"currentColor\">3</text><text x=\"170\" y=\"153\" text-anchor=\"middle\" font-size=\"13\" fill=\"currentColor\">4</text><text x=\"60\" y=\"130\" text-anchor=\"middle\" font-size=\"13\" fill=\"currentColor\">5</text></svg>", "items": ["1 (outermost dashed layer)", "2 (middle solid layer)", "3 (inner solid layer)", "4 (shaded oval inside)", "5 (external whip-like structure)"], "rights": ["Glycocalyx (capsule/slime layer)", "Cell wall", "Cell membrane", "Nucleoid (DNA region)", "Flagellum"], "exp": "Outer to inner: glycocalyx, cell wall, cell membrane, with the nucleoid inside the cytoplasm and the flagellum projecting externally."}, {"id": "g2", "ch": 4, "type": "diagram", "q": "Put the Gram stain reagents in the correct order (Step 1 through Step 4).", "svg": "<svg viewBox=\"0 0 420 160\" xmlns=\"http://www.w3.org/2000/svg\"><g font-size=\"12\" fill=\"currentColor\"><rect x=\"10\" y=\"40\" width=\"80\" height=\"50\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><text x=\"50\" y=\"30\" text-anchor=\"middle\">Step 1</text><text x=\"50\" y=\"110\" text-anchor=\"middle\">?</text><rect x=\"110\" y=\"40\" width=\"80\" height=\"50\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><text x=\"150\" y=\"30\" text-anchor=\"middle\">Step 2</text><text x=\"150\" y=\"110\" text-anchor=\"middle\">?</text><rect x=\"210\" y=\"40\" width=\"80\" height=\"50\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><text x=\"250\" y=\"30\" text-anchor=\"middle\">Step 3</text><text x=\"250\" y=\"110\" text-anchor=\"middle\">?</text><rect x=\"310\" y=\"40\" width=\"80\" height=\"50\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><text x=\"350\" y=\"30\" text-anchor=\"middle\">Step 4</text><text x=\"350\" y=\"110\" text-anchor=\"middle\">?</text></g></svg>", "items": ["Step 1", "Step 2", "Step 3", "Step 4"], "rights": ["Crystal violet (primary stain)", "Iodine (mordant)", "Decolorizer (alcohol/acetone)", "Safranin (counterstain)"], "exp": "Mnemonic: “Come In And Stain” -- Crystal violet, Iodine, Alcohol, Safranin. Decolorization (step 3) is the highest-risk step."}]
+;
+var GLOSSARY = {"Archaea": "A domain of single-celled prokaryotes, molecularly closer to Eukarya than to Bacteria; includes extremophiles and methanogens.", "taxonomy": "The science of classification. Ranks run Domain, Kingdom, Phylum, Class, Order, Family, Genus, Species (mnemonic: Dear King Philip Came Over For Good Soup).", "Gram stain": "A differential stain (crystal violet, iodine, decolorizer, safranin -- 'Come In And Stain') that separates bacteria into gram-positive (purple) and gram-negative (pink) based on cell wall structure.", "acid-fast": "A stain used for bacteria with waxy, mycolic-acid-rich walls (e.g., Mycobacterium) that resist the Gram stain.", "bioelements": "Elements essential to life. Mnemonic: C HOPKINS CaFe Na Cl Mgood = Carbon, Hydrogen, Oxygen, Phosphorus, Potassium, Iodine, Nitrogen, Sulfur, Calcium, Iron, Sodium, Chlorine, Magnesium.", "enzyme vocab": "Apoenzyme (protein only) + cofactor = Holoenzyme (the active whole). Coenzyme = an organic cofactor. Endoenzyme acts inside the cell; exoenzyme is secreted to act outside it.", "ATP yield": "Glycolysis nets 2 ATP (4 made, 2 spent). The Krebs cycle makes 2 ATP via substrate-level phosphorylation. The ~34-38 ATP theoretical total comes mostly from the electron transport chain.", "biogenesis": "The principle that life arises only from preexisting life -- Pasteur's conclusion, opposing abiogenesis (spontaneous generation).", "zoonosis": "A disease that is native to animals but can be transmitted to humans.", "binomial nomenclature": "The two-part naming system (Genus species, italicized, genus capitalized) used for scientific names.", "peptidoglycan": "The mesh-like polymer (sugars + amino acids) that gives bacterial cell walls their strength; thick in gram-positive cells, thin in gram-negative.", "endospore": "A tough, dormant, heat/chemical-resistant survival structure formed by some bacteria (e.g., Bacillus, Clostridium) under stress; not a reproductive structure.", "glycocalyx": "The outermost coating of a cell (capsule or slime layer), made of polysaccharides/proteins.", "capsule": "A well-organized, tightly bound glycocalyx layer that helps bacteria evade the host immune system.", "flagella": "Whip-like appendages used for bacterial motility; arrangements include monotrichous, lophotrichous, amphitrichous, and peritrichous.", "pili": "Long, tubular appendages on gram-negative bacteria used for conjugation (genetic exchange).", "fimbriae": "Short, bristle-like appendages used for attachment to surfaces or other cells.", "endosymbiotic theory": "The idea that mitochondria and chloroplasts originated from engulfed bacteria (aerobic bacteria and cyanobacteria, respectively), based on their own circular DNA, 70S ribosomes, and double membranes.", "trophozoite": "The active, feeding/motile stage of a protozoan (as opposed to the dormant cyst stage).", "cyst": "A dormant, resistant stage formed by protozoa for survival and transmission between hosts.", "dimorphism": "A single species capable of two distinct growth forms (e.g., hyphae and budding yeast), seen in some pathogenic fungi.", "osmosis": "The diffusion of water across a membrane toward the side with higher solute concentration (hypertonic side).", "hypertonic": "A solution with a higher solute concentration than the cell -- water leaves the cell, which can shrink (plasmolysis).", "active transport": "Movement of a substance across a membrane against its concentration gradient, requiring ATP.", "quorum sensing": "A bacterial communication system where accumulating signal molecules, once reaching a threshold tied to population density, trigger coordinated gene expression (e.g., in biofilms).", "biofilm": "A structured, surface-attached community of microbes encased in a self-produced extracellular matrix.", "generation time": "The time required for a microbial population to double (one round of binary fission).", "growth curve": "The four phases of population growth: lag, exponential (log), stationary, and death.", "glycolysis": "The first stage of respiration/fermentation; splits glucose into two pyruvate molecules, netting 2 ATP, in the cytoplasm.", "Krebs cycle": "The second stage of aerobic respiration (in the mitochondrial matrix); processes acetyl-CoA, releasing CO2 and generating electron carriers (NADH, FADH2) plus 2 ATP.", "electron transport chain": "A series of membrane protein complexes that pass electrons and pump protons, building the proton motive force used by ATP synthase to generate most of the cell's ATP.", "proton motive force": "The electrochemical gradient of protons (H+) across a membrane, generated by the electron transport chain and used to drive ATP synthase.", "fermentation": "Anaerobic breakdown of glucose via glycolysis only (no electron transport chain), netting just 2 ATP, used to regenerate NAD+."}
+;
+var CHAPTERS = [1,4,5,7,8];
+
+// ======================= PERSISTENCE =======================
+var STORE_KEY = "bio207_progress_v2";
+var SETTINGS_KEY = "bio207_settings_v2";
+var dbNS = null, dbReady = false;
+
+function loadProgress(){
+  try{
+    var raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {};
+}
+function saveProgress(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(progress)); }catch(e){} }
+
+function loadSettings(){
+  try{
+    var raw = localStorage.getItem(SETTINGS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { sound:true, tts:false, theme:"auto", seenTutorial:false };
+}
+function saveSettings(){ try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }catch(e){} }
+
+function applyTheme(){
+  try{
+    var r = document.documentElement;
+    if(settings.theme==="light"){ r.setAttribute("data-theme","light"); }
+    else if(settings.theme==="dark"){ r.setAttribute("data-theme","dark"); }
+    else { r.removeAttribute("data-theme"); }
+  }catch(e){}
+}
+function cycleTheme(){
+  var order = ["auto","light","dark"];
+  var i = order.indexOf(settings.theme);
+  settings.theme = order[(i+1)%order.length];
+  saveSettings(); applyTheme(); render();
+}
+function themeIcon(){
+  if(settings.theme==="light") return "\u2600\ufe0f Light";
+  if(settings.theme==="dark") return "\ud83c\udf19 Dark";
+  return "\ud83c\udf13 Auto";
+}
+
+var progress = loadProgress();
+var settings = loadSettings();
+applyTheme();
+var streak = (function(){ try{ return parseInt(localStorage.getItem("bio207_streak_v2")||"0",10); }catch(e){ return 0; } })();
+function saveStreak(){ try{ localStorage.setItem("bio207_streak_v2", String(streak)); }catch(e){} }
+
+function initRuntime(){
+  try{
+    if(typeof claude === "undefined" || !claude.use) return;
+    claude.use("db").then(function(ns){ dbNS = ns; dbReady = !!ns; if(ns) pushSummary(); }).catch(function(){});
+  }catch(e){}
+}
+initRuntime();
+
+function syncQuestionDoc(q, rec){
+  if(!dbNS) return;
+  try{
+    dbNS.collection("progress").doc(q.id).set({
+      ch:q.ch, prompt:q.q, box:rec.box, correctCount:rec.correctCount, wrongCount:rec.wrongCount, lastSeen:rec.lastSeen
+    }).catch(function(){});
+  }catch(e){}
+}
+function pushSummary(){
+  if(!dbNS) return;
+  try{ dbNS.doc("meta/summary").set(computeStats()).catch(function(){}); }catch(e){}
+}
+
+// ======================= STATS / DIAGNOSTICS =======================
+function computeStats(){
+  var ids = Object.keys(progress);
+  var totalAnswered=0, totalCorrect=0;
+  var byCh = {}; CHAPTERS.forEach(function(c){ byCh[c]={a:0,c:0,qTotal:0}; });
+  QUESTIONS.forEach(function(q){ if(byCh[q.ch]) byCh[q.ch].qTotal++; });
+  var flagged = [];
+  ids.forEach(function(id){
+    var rec = progress[id]; if(!rec) return;
+    var answered = (rec.correctCount||0)+(rec.wrongCount||0);
+    totalAnswered += answered; totalCorrect += (rec.correctCount||0);
+    var q = QUESTIONS.find(function(x){return x.id===id;});
+    if(q && byCh[q.ch]){ byCh[q.ch].a += answered; byCh[q.ch].c += (rec.correctCount||0); }
+    if(rec.flag) flagged.push(id);
+  });
+  return {
+    totalAnswered:totalAnswered, totalCorrect:totalCorrect,
+    accuracy: totalAnswered? Math.round(100*totalCorrect/totalAnswered):0,
+    byChapter: byCh, flaggedIds: flagged, flaggedCount: flagged.length,
+    totalQuestions: QUESTIONS.length, updatedAt: Date.now()
+  };
+}
+function heatColor(acc, answered){
+  if(answered===0) return "var(--border)";
+  if(acc>=85) return "var(--good)";
+  if(acc>=65) return "#84cc16";
+  if(acc>=45) return "var(--warn)";
+  return "var(--bad)";
+}
+function classifyAttempt(rec, correct, confidence){
+  if(correct) return confidence==="high" ? "solid" : "fragile";
+  if(confidence==="high") return "overconfident";
+  if((rec.wrongCount||0) >= 1){
+    return (rec.correctCount||0) > 0 ? "slipped" : "recurring";
+  }
+  return "new_gap";
+}
+var DIAG_LABEL = {
+  solid:"Solid -- confident and correct.",
+  fragile:"Fragile -- right, but you weren't sure. Worth a second look.",
+  overconfident:"Overconfident -- you were sure, but it's wrong. These are the most dangerous gaps for exam day.",
+  slipped:"Slipped -- you had this before and missed it now. Knowledge may be destabilizing; revisit the concept.",
+  recurring:"Recurring miss -- you've missed this one more than once. High priority to review.",
+  new_gap:"New gap -- first miss, totally normal. Now it's flagged for review."
+};
+
+function recordAnswer(q, isCorrect, confidence){
+  var rec = progress[q.id] || {box:1, correctCount:0, wrongCount:0, lastSeen:0, flag:false};
+  var cls = classifyAttempt(rec, isCorrect, confidence);
+  rec.lastSeen = Date.now();
+  rec.lastClass = cls;
+  if(isCorrect){
+    rec.correctCount = (rec.correctCount||0)+1;
+    rec.box = Math.min((rec.box||1)+1, 4);
+    rec.flag = (cls==="fragile");
+    streak++;
+  } else {
+    rec.wrongCount = (rec.wrongCount||0)+1;
+    rec.box = 1;
+    rec.flag = true;
+    streak = 0;
+  }
+  saveStreak();
+  progress[q.id] = rec;
+  saveProgress();
+  syncQuestionDoc(q, rec);
+  pushSummary();
+  if(settings.sound){ isCorrect ? playCorrectChime() : playWrongTone(); }
+  if(isCorrect && streak>0 && streak%5===0){ triggerConfetti(); }
+  return cls;
+}
+
+// ======================= SOUND =======================
+var audioCtx = null;
+function getAudioCtx(){
+  if(!audioCtx){
+    try{ var AC = window.AudioContext||window.webkitAudioContext; audioCtx = new AC(); }catch(e){}
+  }
+  return audioCtx;
+}
+function playTone(freq, start, dur, vol){
+  try{
+    var ctx = getAudioCtx(); if(!ctx) return;
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = freq; o.type = "sine";
+    o.connect(g); g.connect(ctx.destination);
+    var t0 = ctx.currentTime + start;
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(vol||0.15, t0+0.02);
+    g.gain.linearRampToValueAtTime(0, t0+dur);
+    o.start(t0); o.stop(t0+dur+0.02);
+  }catch(e){}
+}
+function playCorrectChime(){ playTone(523.25,0,0.12); playTone(783.99,0.1,0.16); }
+function playWrongTone(){ playTone(180,0,0.25,0.12); }
+
+function triggerConfetti(){
+  var root = document.getElementById("confetti-root");
+  var colors = ["#2563eb","#15803d","#f59e0b","#db2777","#7c3aed"];
+  for(var i=0;i<24;i++){
+    var p = document.createElement("div");
+    p.className="confetti-piece";
+    p.style.left = (Math.random()*100)+"vw";
+    p.style.background = colors[i%colors.length];
+    p.style.borderRadius = (Math.random()>0.5?"50%":"2px");
+    p.style.transform = "rotate("+Math.floor(Math.random()*360)+"deg)";
+    root.appendChild(p);
+    (function(el){
+      var dur = 1200+Math.random()*900;
+      var dx = (Math.random()-0.5)*160;
+      try{
+        if(el.animate){
+          el.animate([
+            { transform: el.style.transform, top:"-10px", opacity:1 },
+            { transform: "translate("+dx+"px, 100vh) rotate(720deg)", opacity:0.9 }
+          ], { duration: dur, easing:"cubic-bezier(.2,.6,.6,1)" });
+        } else {
+          el.style.transition = "top "+dur+"ms linear, opacity "+dur+"ms linear";
+          setTimeout(function(){ try{ el.style.top="100vh"; el.style.opacity="0.2"; }catch(e){} }, 10);
+        }
+      }catch(e){}
+      setTimeout(function(){ try{ el.remove(); }catch(e){} }, dur+50);
+    })(p);
+  }
+}
+
+// ======================= TTS =======================
+function speak(text){
+  try{
+    if(!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.98;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function stopSpeak(){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} }
+
+// ======================= SESSION LOGIC =======================
+function shuffle(arr){
+  for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+  return arr;
+}
+function boxOf(id){ return (progress[id]&&progress[id].box)||1; }
+
+function buildSession(filterFn, count){
+  var pool = QUESTIONS.filter(filterFn);
+  var weighted = [];
+  pool.forEach(function(q){
+    var w = Math.max(5-boxOf(q.id),1);
+    for(var i=0;i<w;i++) weighted.push(q);
+  });
+  shuffle(weighted);
+  var seen={}, queue=[];
+  for(var i=0;i<weighted.length;i++){
+    var q=weighted[i];
+    if(!seen[q.id]){ seen[q.id]=true; queue.push(q); if(queue.length>=count) break; }
+  }
+  if(queue.length < Math.min(count, pool.length)){
+    pool.forEach(function(q){ if(!seen[q.id]){ seen[q.id]=true; queue.push(q); } });
+  }
+  return queue;
+}
+
+var SPEED_BUDGET = { mc:20, tf:15, fill:25, match:35, discuss:30, diagram:30 };
+
+// ======================= APP STATE =======================
+var view = "home";
+var session = { queue:[], idx:0, correct:0, mode:"", speed:false, timer:null, timeLeft:0, budget:0 };
+var current = { selectedOpt:null, tfSelected:null, fillVal:"", matchSel:null, confidence:null, checked:false, wasCorrect:false, err:false, cls:null, revealedDiscuss:false };
+var studyPlanForm = { days:1, hours:6, sessionLen:45 };
+var modal = null; // {type:'glossary', term} or {type:'zoom', svg}
+
+var app = document.getElementById("app");
+function go(v){ view=v; stopSpeak(); render(); window.scrollTo(0,0); }
+
+function resetCurrent(){
+  current = { selectedOpt:null, tfSelected:null, fillVal:"", matchSel:null, confidence:null, checked:false, wasCorrect:false, err:false, cls:null, revealedDiscuss:false };
+}
+
+function startSession(filterFn, count, modeLabel, speedMode){
+  session = { queue:buildSession(filterFn,count), idx:0, correct:0, mode:modeLabel, speed:!!speedMode, timer:null, timeLeft:0, budget:0 };
+  resetCurrent();
+  go("quiz");
+  if(session.speed) armTimer();
+}
+
+function armTimer(){
+  clearInterval(session.timer);
+  var q = session.queue[session.idx]; if(!q) return;
+  session.budget = (SPEED_BUDGET[q.type]||20);
+  session.timeLeft = session.budget;
+  session.timer = setInterval(function(){
+    session.timeLeft -= 0.2;
+    if(session.timeLeft<=0){ clearInterval(session.timer); if(!current.checked) checkAnswer(true); }
+    renderTimerOnly();
+  }, 200);
+}
+function renderTimerOnly(){
+  var el = document.getElementById("timerFill");
+  if(el){ el.style.width = Math.max(0,(100*session.timeLeft/session.budget))+"%"; }
+}
+
+// ======================= RENDER: HOME =======================
+function topbarHtml(){
+  return "<div class=\"topbar\"><span class=\"brand\">BIO 207 PRACTICE</span><button class=\"iconbtn\" onclick=\"cycleTheme()\">"+themeIcon()+"</button></div>";
+}
+function render(){
+  var body = "";
+  if(view==="home") body = renderHome();
+  else if(view==="chapters") body = renderChapterPicker();
+  else if(view==="quiz") body = renderQuiz();
+  else if(view==="done") body = renderDone();
+  else if(view==="weak") body = renderWeak();
+  else if(view==="plan") body = renderPlan();
+  else if(view==="settings") body = renderSettings();
+  else if(view==="glossary") body = renderGlossary();
+  app.innerHTML = topbarHtml() + body;
+  if(modal) renderModal();
+  if(!settings.seenTutorial && view==="home" && !modal){ openTutorial(); }
+}
+
+function renderHome(){
+  var s = computeStats();
+  var html="";
+  html += "<h1>BIO 207 \u2014 Exam I Practice</h1>";
+  html += "<p class=\"muted\">Chapters 1, 4, 5, 7, 8 \u00b7 "+QUESTIONS.length+" questions \u00b7 multiple choice, true/false, fill-in, matching, labeling diagrams, and discussion review.</p>";
+  html += "<div class=\"card\"><div class=\"statgrid\">";
+  html += "<div class=\"stat\"><div class=\"num\">"+s.totalAnswered+"</div><div class=\"lab\">answers given</div></div>";
+  html += "<div class=\"stat\"><div class=\"num\">"+s.accuracy+"%</div><div class=\"lab\">accuracy</div></div>";
+  html += "</div>";
+  CHAPTERS.forEach(function(ch){
+    var c = s.byChapter[ch];
+    var acc = c.a? Math.round(100*c.c/c.a):0;
+    html += "<div style=\"margin-top:8px;\"><div class=\"progresstop\"><span>Chapter "+ch+"</span><span>"+c.a+" answers</span></div><div class=\"barwrap heatbar\"><div class=\"bar heatbar\" style=\"width:"+(c.a?Math.min(100,acc):4)+"%; background:"+heatColor(acc,c.a)+";\"></div></div></div>";
+  });
+  html += "<div class=\"small\">"+(dbReady?"Synced \u2014 Claude can check your progress anytime.":"Saved on this device.")+"</div>";
+  html += "</div>";
+
+  html += "<button class=\"btn btn-primary\" onclick=\"startSession(function(q){return true;}, 15, 'Mixed practice')\">Start mixed practice</button>";
+  html += "<button class=\"btn\" onclick=\"go('chapters')\">Practice one chapter</button>";
+  html += "<button class=\"btn\" onclick=\"startSession(function(q){return true;}, 12, 'Speed round', true)\">\u26a1 Speed round (timed)</button>";
+  html += "<button class=\"btn\" onclick=\"go('weak')\">Weak areas ("+s.flaggedCount+" flagged)</button>";
+  html += "<button class=\"btn\" onclick=\"initPlanForm();go('plan')\">Study plan builder</button>";
+  html += "<button class=\"btn\" onclick=\"go('glossary')\">Glossary</button>";
+  html += "<button class=\"btn\" onclick=\"go('settings')\">Settings, export &amp; downloads</button>";
+  return html;
+}
+
+function renderChapterPicker(){
+  var html = "<h1>Pick a chapter</h1><p class=\"muted\">Weighted toward whatever you've missed before.</p>";
+  CHAPTERS.forEach(function(ch){
+    var n = QUESTIONS.filter(function(q){return q.ch===ch;}).length;
+    html += "<button class=\"btn\" onclick=\"startSession(function(q){return q.ch==="+ch+";}, 15, 'Chapter "+ch+"')\">Chapter "+ch+" <span class=\"muted\">("+n+" questions)</span></button>";
+  });
+  html += "<button class=\"btn btn-ghost\" onclick=\"go('home')\">Back</button>";
+  return html;
+}
+
+// ======================= RENDER: WEAK AREAS =======================
+function renderWeak(){
+  var s = computeStats();
+  var html = "<h1>Weak areas</h1>";
+  html += "<div class=\"card\">";
+  CHAPTERS.forEach(function(ch){
+    var c = s.byChapter[ch];
+    var acc = c.a? Math.round(100*c.c/c.a):0;
+    html += "<div style=\"margin-bottom:10px;\"><div class=\"progresstop\"><span>Chapter "+ch+"</span><span>"+(c.a? acc+"% ("+c.a+" answered)":"not started")+"</span></div><div class=\"barwrap heatbar\"><div class=\"bar heatbar\" style=\"width:"+(c.a?Math.max(acc,4):4)+"%; background:"+heatColor(acc,c.a)+";\"></div></div></div>";
+  });
+  html += "</div>";
+
+  var flagged = s.flaggedIds.map(function(id){ return QUESTIONS.find(function(q){return q.id===id;}); }).filter(Boolean);
+  var byClass = {overconfident:[], recurring:[], slipped:[], fragile:[]};
+  flagged.forEach(function(q){ var c = progress[q.id].lastClass; if(byClass[c]) byClass[c].push(q); });
+
+  function section(title, list, cls){
+    if(!list.length) return "";
+    var h = "<div class=\"card\"><h2>"+title+" ("+list.length+")</h2><p class=\"muted\" style=\"margin-top:-6px;\">"+DIAG_LABEL[cls]+"</p>";
+    list.slice(0,8).forEach(function(q){ h += "<div class=\"small\" style=\"margin:6px 0;padding:8px;background:var(--chip);border-radius:8px;\">Ch"+q.ch+": "+q.q.slice(0,90)+(q.q.length>90?"...":"")+"</div>"; });
+    h += "</div>";
+    return h;
+  }
+  html += section("Overconfident misses", byClass.overconfident, "overconfident");
+  html += section("Recurring misses", byClass.recurring, "recurring");
+  html += section("Slipped (knew it before)", byClass.slipped, "slipped");
+  html += section("Fragile (right, but unsure)", byClass.fragile, "fragile");
+
+  if(flagged.length){
+    html += "<button class=\"btn btn-primary\" onclick=\"startSession(function(q){var r=progress[q.id]; return r&&r.flag;}, 20, 'Weak-area review')\">Practice all flagged ("+flagged.length+")</button>";
+  } else {
+    html += "<p class=\"muted\">Nothing flagged yet -- keep practicing and anything shaky will show up here.</p>";
+  }
+  html += "<button class=\"btn btn-ghost\" onclick=\"go('home')\">Back</button>";
+  return html;
+}
+
+// ======================= RENDER: STUDY PLAN =======================
+function initPlanForm(){ studyPlanForm = { days:1, hours:6, sessionLen:45 }; }
+function renderPlan(){
+  var html = "<h1>Study plan builder</h1><div class=\"card\">";
+  html += "<label class=\"small\">Days until the exam</label><input type=\"number\" min=\"1\" max=\"14\" value=\""+studyPlanForm.days+"\" oninput=\"studyPlanForm.days=parseInt(this.value)||1\">";
+  html += "<div style=\"height:10px;\"></div><label class=\"small\">Total study hours you have</label><input type=\"number\" min=\"0.5\" step=\"0.5\" value=\""+studyPlanForm.hours+"\" oninput=\"studyPlanForm.hours=parseFloat(this.value)||1\">";
+  html += "<div style=\"height:10px;\"></div><label class=\"small\">Preferred session length (minutes)</label><select onchange=\"studyPlanForm.sessionLen=parseInt(this.value)\">";
+  [30,45,60,90].forEach(function(v){ html += "<option value=\""+v+"\" "+(studyPlanForm.sessionLen===v?"selected":"")+">"+v+" min</option>"; });
+  html += "</select>";
+  html += "<div style=\"height:14px;\"></div><button class=\"btn btn-primary\" onclick=\"renderPlanOutput()\">Build my plan</button>";
+  html += "</div><div id=\"planOut\"></div>";
+  html += "<button class=\"btn btn-ghost\" onclick=\"go('home')\">Back</button>";
+  return html;
+}
+function renderPlanOutput(){
+  var s = computeStats();
+  var order = CHAPTERS.slice().sort(function(a,b){
+    var ca=s.byChapter[a], cb=s.byChapter[b];
+    var accA = ca.a? ca.c/ca.a : -1, accB = cb.a? cb.c/cb.a : -1;
+    return accA-accB;
+  });
+  var totalMinutes = studyPlanForm.hours*60;
+  var perSession = Math.min(studyPlanForm.sessionLen, totalMinutes/studyPlanForm.days);
+  var sessions = Math.max(1, Math.round(totalMinutes/perSession));
+  var qPerMin = 1.3;
+  var lines = [];
+  lines.push("BIO 207 Exam I -- "+studyPlanForm.days+"-day study plan ("+studyPlanForm.hours+" total hours, ~"+Math.round(perSession)+" min/session)");
+  lines.push("");
+  for(var i=0;i<sessions;i++){
+    var ch = order[i % order.length];
+    var qCount = Math.max(8, Math.round(perSession*qPerMin));
+    lines.push("Session "+(i+1)+" (~"+Math.round(perSession)+" min): Chapter "+ch+" -- weakest area first. Target ~"+qCount+" questions (mixed practice weighted to misses), then 5 min reviewing the Weak Areas screen.");
+  }
+  lines.push("");
+  lines.push("Final session before the exam: Mixed practice across all 5 chapters + full Weak Areas review.");
+  var txt = lines.join("\n");
+  var el = document.getElementById("planOut");
+  el.innerHTML = "<div class=\"card\"><h2>Your plan</h2><textarea class=\"plan-out\" readonly>"+txt.replace(/</g,"&lt;")+"</textarea><div class=\"row\" style=\"margin-top:10px;\"><button class=\"iconbtn\" onclick=\"copyText(document.querySelector('.plan-out').value)\">Copy</button><button class=\"iconbtn\" onclick=\"downloadText('bio207_study_plan.txt', document.querySelector('.plan-out').value)\">Download</button></div></div>";
+}
+
+// ======================= RENDER: SETTINGS =======================
+function renderSettings(){
+  var html = "<h1>Settings, export &amp; downloads</h1>";
+  html += "<div class=\"card\">";
+  html += "<label class=\"row\"><input type=\"checkbox\" "+(settings.sound?"checked":"")+" onchange=\"settings.sound=this.checked;saveSettings();\"> Sound effects + confetti on streaks</label>";
+  html += "<div style=\"height:10px;\"></div><label class=\"row\"><input type=\"checkbox\" "+(settings.tts?"checked":"")+" onchange=\"settings.tts=this.checked;saveSettings();\"> Auto-read questions aloud (great while driving)</label>";
+  html += "</div>";
+
+  html += "<div class=\"card\"><h2>Backup &amp; sharing</h2>";
+  html += "<button class=\"btn\" onclick=\"exportProgress()\">Export my progress (file)</button>";
+  html += "<label class=\"btn\" style=\"text-align:center;\">Import progress (file)<input type=\"file\" accept=\".json\" style=\"display:none;\" onchange=\"importProgress(event)\"></label>";
+  html += "<button class=\"btn\" onclick=\"copyMissed()\">Copy my missed questions as text</button>";
+  html += "<button class=\"btn\" onclick=\"downloadMissed()\">Download my missed questions (.txt)</button>";
+  html += "<button class=\"btn\" onclick=\"downloadFullBank()\">Download full question bank (.txt)</button>";
+  html += "</div>";
+
+  html += "<div class=\"card\"><h2>Display &amp; help</h2><p class=\"small\">Theme: tap the icon in the top-right corner of any screen to cycle Auto / Light / Dark.</p><button class=\"btn\" onclick=\"replayTutorial()\">Replay the welcome tutorial</button></div>";
+
+  html += "<div class=\"card\"><h2>Reset</h2><button class=\"btn\" onclick=\"resetProgress()\">Reset all progress on this device</button></div>";
+  html += "<button class=\"btn btn-ghost\" onclick=\"go('home')\">Back</button>";
+  return html;
+}
+
+function copyText(t){ try{ navigator.clipboard.writeText(t); alert("Copied."); }catch(e){ alert("Could not copy automatically -- select and copy manually."); } }
+function downloadText(filename, text){
+  try{
+    var blob = new Blob([text], {type:"text/plain"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a"); a.href=url; a.download=filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  }catch(e){ alert("Download failed in this browser."); }
+}
+function missedAsText(){
+  var s = computeStats();
+  var ids = s.flaggedIds;
+  var lines = ["BIO 207 -- Missed / flagged questions ("+ids.length+")",""];
+  CHAPTERS.forEach(function(ch){
+    var qs = ids.map(function(id){return QUESTIONS.find(function(q){return q.id===id;});}).filter(function(q){return q&&q.ch===ch;});
+    if(!qs.length) return;
+    lines.push("=== Chapter "+ch+" ===");
+    qs.forEach(function(q){
+      lines.push("Q: "+q.q);
+      if(q.type==="mc") lines.push("A: "+q.opts[q.correct]);
+      else if(q.type==="tf") lines.push("A: "+(q.correct?"True":"False"));
+      else if(q.type==="fill") lines.push("A: "+q.answers[0]);
+      else if(q.type==="match"||q.type==="diagram") lines.push("A: "+q.items.map(function(it,i){return it+" -> "+q.rights[i];}).join("; "));
+      else if(q.type==="discuss") lines.push("A: "+q.model);
+      lines.push("Why: "+(q.exp||q.model||""));
+      lines.push("");
+    });
+  });
+  return lines.join("\n");
+}
+function copyMissed(){ copyText(missedAsText()); }
+function downloadMissed(){ downloadText("bio207_missed_questions.txt", missedAsText()); }
+function fullBankAsText(){
+  var lines = ["BIO 207 -- Full practice question bank ("+QUESTIONS.length+" questions)",""];
+  CHAPTERS.forEach(function(ch){
+    lines.push("=== Chapter "+ch+" ===");
+    QUESTIONS.filter(function(q){return q.ch===ch;}).forEach(function(q){
+      lines.push("Q: "+q.q);
+      if(q.type==="mc") lines.push("A: "+q.opts[q.correct]);
+      else if(q.type==="tf") lines.push("A: "+(q.correct?"True":"False"));
+      else if(q.type==="fill") lines.push("A: "+q.answers[0]);
+      else if(q.type==="match"||q.type==="diagram") lines.push("A: "+q.items.map(function(it,i){return it+" -> "+q.rights[i];}).join("; "));
+      else if(q.type==="discuss") lines.push("A: "+q.model);
+      if(q.exp) lines.push("Why: "+q.exp);
+      lines.push("");
+    });
+  });
+  return lines.join("\n");
+}
+function downloadFullBank(){ downloadText("bio207_full_question_bank.txt", fullBankAsText()); }
+
+function exportProgress(){
+  var payload = { app:"bio207-exam1", exportedAt:new Date().toISOString(), progress:progress, settings:settings, streak:streak };
+  downloadText("bio207_progress_backup.json", JSON.stringify(payload, null, 2));
+}
+function importProgress(evt){
+  var file = evt.target.files && evt.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    try{
+      var data = JSON.parse(reader.result);
+      if(data && data.progress){
+        progress = data.progress; saveProgress();
+        if(data.settings){ settings = data.settings; saveSettings(); }
+        if(typeof data.streak==="number"){ streak = data.streak; saveStreak(); }
+        alert("Progress imported.");
+        go("home");
+      } else { alert("That file doesn't look like a BIO 207 progress backup."); }
+    }catch(e){ alert("Couldn't read that file."); }
+  };
+  reader.readAsText(file);
+}
+function resetProgress(){
+  if(!confirm("Reset all saved progress on this device? This can't be undone.")) return;
+  progress = {}; streak = 0; saveProgress(); saveStreak(); pushSummary(); go("home");
+}
+
+// ======================= RENDER: GLOSSARY =======================
+function renderGlossary(){
+  var html = "<h1>Glossary</h1><div class=\"card\">";
+  Object.keys(GLOSSARY).sort().forEach(function(term){
+    html += "<div style=\"margin-bottom:12px;\"><div style=\"font-weight:600;font-size:14px;\">"+term+"</div><div class=\"small\">"+GLOSSARY[term]+"</div></div>";
+  });
+  html += "</div><button class=\"btn btn-ghost\" onclick=\"go('home')\">Back</button>";
+  return html;
+}
+
+// ======================= RENDER: QUIZ =======================
+function optLetter(i){ return String.fromCharCode(97+i); }
+
+function renderQuiz(){
+  if(session.idx >= session.queue.length){ clearInterval(session.timer); return renderDone(); }
+  var q = session.queue[session.idx];
+  if(settings.tts && !current.checked && !current._spoken){ current._spoken = true; speak(q.q); }
+  var html = "";
+  html += "<div class=\"progresstop\"><span>"+session.mode+(session.speed?" \u26a1":"")+"</span><span>Question "+(session.idx+1)+" / "+session.queue.length+"</span></div>";
+  if(session.speed){ html += "<div class=\"timerbar\"><div class=\"timerfill\" id=\"timerFill\" style=\"width:100%;\"></div></div>"; }
+
+  html += "<div class=\"card\">";
+  html += "<span class=\"chip\">Ch "+q.ch+"</span>";
+  html += "<button class=\"iconbtn\" style=\"float:right;\" onclick=\"speak(QUESTIONS.find(function(x){return x.id==='"+q.id+"';}).q)\">\ud83d\udd0a Read aloud</button>";
+  html += "<div class=\"qtext\" style=\"margin-top:10px;clear:both;\">"+escapeHtml(q.q)+"</div>";
+
+  if(q.terms && q.terms.length){
+    q.terms.forEach(function(t){ html += "<button class=\"chip\" onclick=\"openGlossary('"+t.replace(/'/g,"\\'")+"')\">\u2139 "+t+"</button>"; });
+  }
+
+  if(q.type==="diagram"){
+    html += "<div onclick=\"openZoom('"+q.id+"')\">"+q.svg.replace("<svg ","<svg class=\\\"diagram\\\" ")+"</div><div class=\"small\">Tap the diagram to zoom.</div>";
+  }
+
+  if(q.type==="mc"){
+    q.opts.forEach(function(opt,i){
+      var cls="opt";
+      if(current.checked){ if(i===q.correct) cls+=" correct"; else if(i===current.selectedOpt) cls+=" incorrect"; }
+      else if(i===current.selectedOpt) cls+=" selected";
+      html += "<div class=\""+cls+"\" onclick=\"selectOpt("+i+")\">"+optLetter(i)+". "+escapeHtml(opt)+"</div>";
+    });
+  } else if(q.type==="tf"){
+    [true,false].forEach(function(val){
+      var label = val?"True":"False"; var cls="opt";
+      if(current.checked){ if(val===q.correct) cls+=" correct"; else if(val===current.tfSelected) cls+=" incorrect"; }
+      else if(val===current.tfSelected) cls+=" selected";
+      html += "<div class=\""+cls+"\" onclick=\"selectTf("+val+")\">"+label+"</div>";
+    });
+  } else if(q.type==="fill"){
+    html += "<input type=\"text\" id=\"fillInput\" placeholder=\"Type your answer\" value=\""+(current.fillVal||"").replace(/\"/g,"")+"\" oninput=\"current.fillVal=this.value\" "+(current.checked?"disabled":"")+">";
+    if(current.checked){ html += "<div class=\"feedback "+(current.wasCorrect?"good":"bad")+"\">"+(current.wasCorrect?"Correct.":"Correct answer: "+q.answers[0])+"</div>"; }
+    if(current.err) html += "<div class=\"err\">Enter an answer first.</div>";
+  } else if(q.type==="match" || q.type==="diagram"){
+    if(!current.matchSel) current.matchSel = new Array(q.items.length).fill("");
+    var pool = shuffle(Array.from(new Set(q.rights)));
+    q.items.forEach(function(item,i){
+      html += "<div class=\"matchrow\"><div class=\"mleft\">"+(i+1)+". "+escapeHtml(item)+"</div>";
+      html += "<select onchange=\"current.matchSel["+i+"]=this.value\" "+(current.checked?"disabled":"")+"><option value=\"\">(choose)</option>";
+      pool.forEach(function(opt){
+        html += "<option "+(current.matchSel[i]===opt?"selected":"")+" value=\""+opt.replace(/\"/g,"")+"\">"+escapeHtml(opt)+"</option>";
+      });
+      html += "</select>";
+      if(current.checked){
+        var ok = current.matchSel[i]===q.rights[i];
+        html += "<div class=\"small\" style=\"color:"+(ok?"var(--good)":"var(--bad)")+";margin-top:4px;\">"+(ok?"Correct":"Correct: "+q.rights[i])+"</div>";
+      }
+      html += "</div>";
+    });
+    if(current.err) html += "<div class=\"err\">Answer every row first.</div>";
+  } else if(q.type==="discuss"){
+    if(!current.revealedDiscuss){
+      html += "<button class=\"btn\" onclick=\"current.revealedDiscuss=true;render();\">Show model answer</button>";
+    } else {
+      html += "<div class=\"feedback good\" style=\"margin-bottom:10px;\">"+escapeHtml(q.model)+"</div>";
+      if(!current.checked){
+        html += "<p class=\"small\">How did you do, honestly?</p>";
+        html += "<div class=\"row\"><button class=\"btn btn-sm\" onclick=\"discussResult(true)\">I got the gist</button><button class=\"btn btn-sm\" onclick=\"discussResult(false)\">I need to review this</button></div>";
+      }
+    }
+  }
+
+  if(q.type!=="discuss"){
+    if(!current.checked){
+      html += "<div class=\"confband\">";
+      ["low","med","high"].forEach(function(c){
+        var label = c==="low"?"Not sure":c==="med"?"Somewhat sure":"Confident";
+        html += "<div class=\"confbtn "+(current.confidence===c?"selected":"")+"\" onclick=\"current.confidence='"+c+"';render();\">"+label+"</div>";
+      });
+      html += "</div>";
+    }
+  }
+
+  if(current.checked){
+    html += "<div class=\"feedback "+(current.wasCorrect?"good":"bad")+"\" style=\"margin-top:12px;\">"+(current.wasCorrect?"\u2713 Correct. ":"\u2717 Not quite. ")+escapeHtml(q.exp||"")+"</div>";
+    if(current.cls){ html += "<div class=\"feedback warn\">"+DIAG_LABEL[current.cls]+"</div>"; }
+  }
+  html += "</div>";
+
+  html += "<div class=\"footerbtn\">";
+  if(q.type==="discuss"){
+    if(current.checked){ html += "<button class=\"btn btn-primary\" onclick=\"nextQuestion()\">"+(session.idx+1<session.queue.length?"Next question":"See results")+"</button>"; }
+  } else if(!current.checked){
+    html += "<button class=\"btn btn-primary\" onclick=\"checkAnswer()\">Check answer</button>";
+  } else {
+    html += "<button class=\"btn btn-primary\" onclick=\"nextQuestion()\">"+(session.idx+1<session.queue.length?"Next question":"See results")+"</button>";
+  }
+  html += "</div>";
+  return html;
+}
+
+function escapeHtml(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function selectOpt(i){ if(current.checked) return; current.selectedOpt=i; current.err=false; render(); }
+function selectTf(v){ if(current.checked) return; current.tfSelected=v; current.err=false; render(); }
+
+function discussResult(gotIt){
+  var q = session.queue[session.idx];
+  var rec = progress[q.id] || {box:1,correctCount:0,wrongCount:0,lastSeen:0,flag:false};
+  var cls = classifyAttempt(rec, gotIt, "med");
+  current.checked = true; current.wasCorrect = gotIt; current.cls = cls;
+  if(gotIt) session.correct++;
+  recordAnswer(q, gotIt, "med");
+  render();
+}
+
+function checkAnswer(timedOut){
+  var q = session.queue[session.idx];
+  if(!timedOut && !current.confidence){ current.err=true; render(); return; }
+  var conf = current.confidence || "low";
+  var isCorrect = false;
+  if(q.type==="mc"){
+    if(current.selectedOpt===null){ if(timedOut){ isCorrect=false; } else { current.err=true; render(); return; } }
+    else isCorrect = current.selectedOpt===q.correct;
+  } else if(q.type==="tf"){
+    if(current.tfSelected===null){ if(timedOut){ isCorrect=false; } else { current.err=true; render(); return; } }
+    else isCorrect = current.tfSelected===q.correct;
+  } else if(q.type==="fill"){
+    var val=(current.fillVal||"").trim();
+    if(!val){ if(timedOut){ isCorrect=false; } else { current.err=true; render(); return; } }
+    else isCorrect = q.answers.some(function(a){return a.toLowerCase()===val.toLowerCase();});
+  } else if(q.type==="match" || q.type==="diagram"){
+    if(!current.matchSel || current.matchSel.some(function(v){return !v;})){
+      if(timedOut){ isCorrect=false; } else { current.err=true; render(); return; }
+    } else {
+      isCorrect = q.items.every(function(it,i){ return current.matchSel[i]===q.rights[i]; });
+    }
+  }
+  clearInterval(session.timer);
+  current.checked=true; current.wasCorrect=isCorrect; current.err=false;
+  if(isCorrect) session.correct++;
+  current.cls = recordAnswer(q, isCorrect, conf);
+  render();
+}
+
+function nextQuestion(){
+  session.idx++;
+  resetCurrent();
+  if(session.idx >= session.queue.length){ clearInterval(session.timer); view="done"; }
+  render();
+  if(session.speed && session.idx < session.queue.length && view==="quiz") armTimer();
+}
+
+function renderDone(){
+  var html = "<h1>Session complete</h1><div class=\"card\"><div class=\"statgrid\">";
+  html += "<div class=\"stat\"><div class=\"num\">"+session.correct+" / "+session.queue.length+"</div><div class=\"lab\">this session</div></div>";
+  var s = computeStats();
+  html += "<div class=\"stat\"><div class=\"num\">"+s.accuracy+"%</div><div class=\"lab\">overall accuracy</div></div>";
+  html += "</div></div>";
+  html += "<button class=\"btn btn-primary\" onclick=\"go('home')\">Back to home</button>";
+  return html;
+}
+
+// ======================= MODALS: GLOSSARY POPOVER + IMAGE ZOOM + TUTORIAL =======================
+function openGlossary(term){ modal = {type:"glossary", term:term}; render(); }
+function openZoom(qid){ var q=QUESTIONS.find(function(x){return x.id===qid;}); modal={type:"zoom", svg:q.svg}; render(); }
+function closeModal(){
+  var wasTutorial = modal && modal.type==="tutorial";
+  modal=null;
+  if(wasTutorial){ settings.seenTutorial=true; saveSettings(); }
+  render();
+}
+
+var TUTORIAL_STEPS = [
+  "Welcome! This app has 248 practice questions across Chapters 1, 4, 5, 7, and 8 -- multiple choice, true/false, fill-in, matching, labeling diagrams, and discussion review.",
+  "After each answer, rate your confidence. It's not just right/wrong -- being confident and wrong gets flagged as your highest-priority gap.",
+  "Check Weak Areas anytime for a color-coded heat-map by chapter, plus exactly which questions keep tripping you up.",
+  "Use the Study Plan Builder to turn your days-until-exam and available hours into a session-by-session plan.",
+  "Everything saves automatically on this device. Export a backup file anytime from Settings, or download your missed questions as text.",
+  "Tip: tap the theme icon (top-right) to cycle Auto/Light/Dark, and use arrow keys + Enter to answer hands-free."
+];
+function openTutorial(){ modal = {type:"tutorial", step:0}; render(); }
+function replayTutorial(){ openTutorial(); }
+function tutorialNext(){
+  if(modal.step < TUTORIAL_STEPS.length-1){ modal.step++; render(); }
+  else { closeModal(); }
+}
+function tutorialPrev(){ if(modal.step>0){ modal.step--; render(); } }
+
+function renderModal(){
+  var old = document.getElementById("modalRoot");
+  if(old) old.remove();
+  var div = document.createElement("div");
+  div.id = "modalRoot";
+  div.className = "modal-overlay";
+  div.onclick = function(e){ if(e.target===div && modal.type!=="tutorial") closeModal(); };
+  var box = document.createElement("div");
+  box.className = "modal-box";
+  if(modal.type==="glossary"){
+    box.innerHTML = "<h2>"+modal.term+"</h2><p>"+(GLOSSARY[modal.term]||"No definition found.")+"</p><button class=\"btn btn-primary\" onclick=\"closeModal()\">Close</button>";
+  } else if(modal.type==="zoom"){
+    box.innerHTML = modal.svg.replace("<svg ","<svg style=\\\"width:100%;height:auto;\\\" ") + "<button class=\"btn btn-primary\" style=\"margin-top:10px;\" onclick=\"closeModal()\">Close</button>";
+  } else if(modal.type==="tutorial"){
+    var i = modal.step;
+    var dots = "<div class=\"tutorial-dots\">"+TUTORIAL_STEPS.map(function(_,idx){ return "<div class=\"tutorial-dot"+(idx===i?" active":"")+"\"></div>"; }).join("")+"</div>";
+    var nav = "<div class=\"row\" style=\"margin-top:14px;\">";
+    if(i>0) nav += "<button class=\"iconbtn\" onclick=\"tutorialPrev()\">Back</button>";
+    nav += "<button class=\"btn btn-primary\" style=\"flex:1;margin-bottom:0;\" onclick=\"tutorialNext()\">"+(i<TUTORIAL_STEPS.length-1?"Next":"Let's go")+"</button>";
+    nav += "<button class=\"iconbtn\" onclick=\"closeModal()\">Skip</button>";
+    nav += "</div>";
+    box.innerHTML = "<h2>Quick tour ("+(i+1)+"/"+TUTORIAL_STEPS.length+")</h2><p>"+TUTORIAL_STEPS[i]+"</p>"+dots+nav;
+  }
+  div.appendChild(box);
+  document.body.appendChild(div);
+}
+
+// ======================= KEYBOARD SHORTCUTS =======================
+function handleKey(e){
+  if(modal){
+    if(e.key==="Escape"){ closeModal(); return; }
+    if(modal.type==="tutorial"){
+      if(e.key==="ArrowRight"||e.key==="Enter"){ tutorialNext(); e.preventDefault(); }
+      else if(e.key==="ArrowLeft"){ tutorialPrev(); e.preventDefault(); }
+    }
+    return;
+  }
+  if(view!=="quiz") return;
+  var q = session.queue[session.idx]; if(!q) return;
+  var tag = (e.target && e.target.tagName) || "";
+  var inField = (tag==="INPUT"||tag==="SELECT"||tag==="TEXTAREA");
+
+  if(q.type==="discuss"){
+    if(!current.revealedDiscuss){
+      if(e.key==="Enter"){ current.revealedDiscuss=true; render(); e.preventDefault(); }
+    } else if(!current.checked){
+      if(e.key==="y"||e.key==="Y"||e.key==="1"){ discussResult(true); e.preventDefault(); }
+      else if(e.key==="n"||e.key==="N"||e.key==="2"){ discussResult(false); e.preventDefault(); }
+    } else if(e.key==="Enter"||e.key===" "){ nextQuestion(); e.preventDefault(); }
+    return;
+  }
+
+  if(current.checked){
+    if(e.key==="Enter"||e.key===" "){ nextQuestion(); e.preventDefault(); }
+    return;
+  }
+
+  if(q.type==="mc" && !inField){
+    var n = parseInt(e.key,10);
+    if(!isNaN(n) && n>=1 && n<=q.opts.length){ selectOpt(n-1); e.preventDefault(); return; }
+    var letterIdx = "abcdefgh".indexOf((e.key||"").toLowerCase());
+    if(letterIdx>=0 && letterIdx<q.opts.length){ selectOpt(letterIdx); e.preventDefault(); return; }
+  }
+  if(q.type==="tf" && !inField){
+    if(e.key==="t"||e.key==="T"){ selectTf(true); e.preventDefault(); return; }
+    if(e.key==="f"||e.key==="F"){ selectTf(false); e.preventDefault(); return; }
+  }
+  if(q.type==="mc"||q.type==="tf"){
+    if(e.key==="ArrowLeft"||e.key==="ArrowRight"){
+      var order=["low","med","high"];
+      var idx = order.indexOf(current.confidence);
+      if(idx===-1) idx = e.key==="ArrowRight" ? -1 : order.length;
+      idx = e.key==="ArrowRight" ? Math.min(order.length-1, idx+1) : Math.max(0, idx-1);
+      current.confidence = order[idx];
+      render(); e.preventDefault(); return;
+    }
+  }
+  if(e.key==="Enter"){ checkAnswer(); e.preventDefault(); }
+}
+try{ document.addEventListener("keydown", handleKey); }catch(e){}
+
+// ======================= SWIPE GESTURES =======================
+var touchStartX=null, touchStartY=null;
+function onTouchStart(e){
+  if(!e.touches || !e.touches.length) return;
+  touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
+}
+function onTouchEnd(e){
+  if(touchStartX===null) return;
+  var t = (e.changedTouches && e.changedTouches[0]) || null;
+  var endX = t ? t.clientX : touchStartX;
+  var endY = t ? t.clientY : touchStartY;
+  var dx = endX-touchStartX, dy = endY-touchStartY;
+  touchStartX=null; touchStartY=null;
+  if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)*1.5){
+    if(view==="quiz" && current.checked && !modal){ nextQuestion(); }
+  }
+}
+try{
+  document.addEventListener("touchstart", onTouchStart, {passive:true});
+  document.addEventListener("touchend", onTouchEnd, {passive:true});
+}catch(e){}
+
+render();
+</script>
+</body>
+</html>
