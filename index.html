@@ -130,7 +130,7 @@ function loadSettings(){
     var raw = localStorage.getItem(SETTINGS_KEY);
     if(raw) return JSON.parse(raw);
   }catch(e){}
-  return { sound:true, tts:false, theme:"auto", seenTutorial:false };
+  return { sound:true, theme:"auto", seenTutorial:false };
 }
 function saveSettings(){ try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }catch(e){} }
 
@@ -307,7 +307,7 @@ function triggerConfetti(){
   }
 }
 
-// ======================= TTS =======================
+// ======================= TTS (manual, tap-to-read; not a driving solution -- see Driving Mode) =======================
 function speak(text){
   try{
     if(!window.speechSynthesis) return;
@@ -318,6 +318,14 @@ function speak(text){
   }catch(e){}
 }
 function stopSpeak(){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} }
+function speakQuestion(q){
+  if(!q) return;
+  var parts = [q.q];
+  if(q.type==="mc"){ parts.push("Your options are: "+q.opts.map(function(o,i){return optLetter(i)+": "+o;}).join(". ")); }
+  else if(q.type==="tf"){ parts.push("True, or false?"); }
+  else if(q.type==="match" || q.type==="diagram"){ parts.push("Match these: "+q.items.map(function(it,i){return (i+1)+": "+it;}).join(". ")); }
+  speak(parts.join(". "));
+}
 
 // ======================= SESSION LOGIC =======================
 function shuffle(arr){
@@ -398,8 +406,10 @@ function render(){
   else if(view==="plan") body = renderPlan();
   else if(view==="settings") body = renderSettings();
   else if(view==="glossary") body = renderGlossary();
+  else if(view==="driving") body = renderDriving();
   app.innerHTML = topbarHtml() + body;
-  if(modal) renderModal();
+  if(modal){ renderModal(); }
+  else { var oldModal = document.getElementById("modalRoot"); if(oldModal) oldModal.remove(); }
   if(!settings.seenTutorial && view==="home" && !modal){ openTutorial(); }
 }
 
@@ -426,6 +436,7 @@ function renderHome(){
   html += "<button class=\"btn\" onclick=\"go('weak')\">Weak areas ("+s.flaggedCount+" flagged)</button>";
   html += "<button class=\"btn\" onclick=\"initPlanForm();go('plan')\">Study plan builder</button>";
   html += "<button class=\"btn\" onclick=\"go('glossary')\">Glossary</button>";
+  html += "<button class=\"btn\" onclick=\"go('driving')\">\ud83d\ude97 Driving mode (study by voice)</button>";
   html += "<button class=\"btn\" onclick=\"go('settings')\">Settings, export &amp; downloads</button>";
   return html;
 }
@@ -522,7 +533,7 @@ function renderSettings(){
   var html = "<h1>Settings, export &amp; downloads</h1>";
   html += "<div class=\"card\">";
   html += "<label class=\"row\"><input type=\"checkbox\" "+(settings.sound?"checked":"")+" onchange=\"settings.sound=this.checked;saveSettings();\"> Sound effects + confetti on streaks</label>";
-  html += "<div style=\"height:10px;\"></div><label class=\"row\"><input type=\"checkbox\" "+(settings.tts?"checked":"")+" onchange=\"settings.tts=this.checked;saveSettings();\"> Auto-read questions aloud (great while driving)</label>";
+  html += "<p class=\"small\">Each question also has a manual \ud83d\udd0a Read aloud button. There's no auto-read -- even read aloud, you'd still need to look at the screen to answer, so it's not a real driving solution. For that, use Driving Mode below.</p>";
   html += "</div>";
 
   html += "<div class=\"card\"><h2>Backup &amp; sharing</h2>";
@@ -629,20 +640,64 @@ function renderGlossary(){
   return html;
 }
 
+// ======================= RENDER: DRIVING MODE =======================
+function drivingModeText(filterFn, scopeLabel){
+  var qs = QUESTIONS.filter(filterFn);
+  var lines = [];
+  lines.push("HOW TO USE THIS FILE");
+  lines.push("Paste everything below into a NEW chat with any AI assistant (ChatGPT, Claude, Gemini, Copilot, etc.) before you start driving.");
+  lines.push("Ask it to quiz you on these questions one at a time, in random order, since you can't read while driving but can have a spoken conversation.");
+  lines.push("It should ask a question, wait for your spoken answer, tell you right away if you're right with a brief explanation, then move on to the next one. Prioritize whichever ones you get wrong -- ask to see those again later in the drive.");
+  lines.push("");
+  lines.push("BIO 207 -- "+scopeLabel+" ("+qs.length+" questions)");
+  lines.push("");
+  qs.forEach(function(q){
+    lines.push("Q: "+q.q);
+    if(q.type==="mc") lines.push("A: "+q.opts[q.correct]);
+    else if(q.type==="tf") lines.push("A: "+(q.correct?"True":"False"));
+    else if(q.type==="fill") lines.push("A: "+q.answers[0]);
+    else if(q.type==="match"||q.type==="diagram") lines.push("A: "+q.items.map(function(it,i){return it+" -> "+q.rights[i];}).join("; "));
+    else if(q.type==="discuss") lines.push("A: "+q.model);
+    if(q.exp) lines.push("Why: "+q.exp);
+    lines.push("");
+  });
+  return lines.join("\n");
+}
+function renderDriving(){
+  var s = computeStats();
+  var html = "<h1>Driving mode</h1>";
+  html += "<div class=\"card\"><p class=\"small\">This isn't an in-app quiz -- the app needs taps to work, which isn't safe to do while driving, even with questions read aloud. Instead, this builds a plain-text file meant for a spoken conversation: pick a scope, copy or download it, and paste it into a new chat with any AI before you start driving.</p></div>";
+  html += "<div class=\"card\"><h2>Pick a scope</h2>";
+  html += "<button class=\"btn\" onclick=\"buildDrivingOutput(function(q){return true;}, 'All 5 chapters')\">All 5 chapters ("+QUESTIONS.length+" questions)</button>";
+  html += "<button class=\"btn\" onclick=\"buildDrivingOutput(function(q){var r=progress[q.id]; return r&&r.flag;}, 'My weak areas only')\">My weak areas only ("+s.flaggedCount+" questions)</button>";
+  CHAPTERS.forEach(function(ch){
+    var n = QUESTIONS.filter(function(q){return q.ch===ch;}).length;
+    html += "<button class=\"btn\" onclick=\"buildDrivingOutput(function(q){return q.ch==="+ch+";}, 'Chapter "+ch+"')\">Chapter "+ch+" only ("+n+" questions)</button>";
+  });
+  html += "</div><div id=\"drivingOut\"></div>";
+  html += "<button class=\"btn btn-ghost\" onclick=\"go('home')\">Back</button>";
+  return html;
+}
+function buildDrivingOutput(filterFn, label){
+  var txt = drivingModeText(filterFn, label);
+  var el = document.getElementById("drivingOut");
+  if(!el) return;
+  el.innerHTML = "<div class=\"card\"><h2>"+label+"</h2><textarea class=\"plan-out\" readonly>"+txt.replace(/</g,"&lt;")+"</textarea><div class=\"row\" style=\"margin-top:10px;\"><button class=\"iconbtn\" onclick=\"copyText(document.querySelector('.plan-out').value)\">Copy</button><button class=\"iconbtn\" onclick=\"downloadText('bio207_driving_mode.txt', document.querySelector('.plan-out').value)\">Download</button></div></div>";
+}
+
 // ======================= RENDER: QUIZ =======================
 function optLetter(i){ return String.fromCharCode(97+i); }
 
 function renderQuiz(){
   if(session.idx >= session.queue.length){ clearInterval(session.timer); return renderDone(); }
   var q = session.queue[session.idx];
-  if(settings.tts && !current.checked && !current._spoken){ current._spoken = true; speak(q.q); }
   var html = "";
   html += "<div class=\"progresstop\"><span>"+session.mode+(session.speed?" \u26a1":"")+"</span><span>Question "+(session.idx+1)+" / "+session.queue.length+"</span></div>";
   if(session.speed){ html += "<div class=\"timerbar\"><div class=\"timerfill\" id=\"timerFill\" style=\"width:100%;\"></div></div>"; }
 
   html += "<div class=\"card\">";
   html += "<span class=\"chip\">Ch "+q.ch+"</span>";
-  html += "<button class=\"iconbtn\" style=\"float:right;\" onclick=\"speak(QUESTIONS.find(function(x){return x.id==='"+q.id+"';}).q)\">\ud83d\udd0a Read aloud</button>";
+  html += "<button class=\"iconbtn\" style=\"float:right;\" onclick=\"speakQuestion(QUESTIONS.find(function(x){return x.id==='"+q.id+"';}))\">\ud83d\udd0a Read aloud</button>";
   html += "<div class=\"qtext\" style=\"margin-top:10px;clear:both;\">"+escapeHtml(q.q)+"</div>";
 
   if(q.terms && q.terms.length){
