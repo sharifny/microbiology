@@ -96,6 +96,31 @@ a{ color:var(--accent); }
 .confbtn{ flex:1; padding:10px 6px; font-size:13px; border-radius:var(--radius); border:1px solid var(--border); background:var(--card); color:var(--fg); cursor:pointer; text-align:center; }
 .confbtn.selected{ border-color:var(--accent); border-width:2px; background:var(--chip); }
 svg.diagram{ width:100%; height:auto; color:var(--fg); cursor:zoom-in; }
+.hero-card{ background:linear-gradient(135deg,var(--accent),#7c3aed); border-radius:var(--radius); padding:16px; color:#fff; margin-bottom:12px; cursor:pointer; box-shadow:0 8px 20px rgba(37,99,235,.25); border:none; width:100%; text-align:left; display:flex; align-items:center; gap:12px; }
+.hero-icon{ font-size:26px; flex-shrink:0; }
+.hero-label{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; opacity:.85; }
+.hero-title{ font-size:17px; font-weight:700; margin-top:2px; }
+.hero-sub{ font-size:12.5px; opacity:.85; margin-top:2px; }
+.hero-chev{ font-size:20px; opacity:.85; flex-shrink:0; }
+.alert-card{ border-radius:var(--radius); padding:16px; margin-bottom:12px; border-width:1px; border-style:solid; }
+.alert-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.alert-title{ font-weight:600; font-size:14px; flex:1; }
+.alert-count{ font-size:12px; font-weight:600; }
+.alert-chip{ font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; margin:0 6px 6px 0; display:inline-block; }
+.alert-msg{ font-size:13px; margin:6px 0 10px; }
+.modecard{ display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:13px 14px; margin-bottom:10px; cursor:pointer; text-align:left; width:100%; }
+.modecard-icon{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+.modecard-body{ flex:1; min-width:0; }
+.modecard-title{ font-weight:600; font-size:14.5px; }
+.modecard-desc{ font-size:12px; color:var(--muted); margin-top:1px; }
+.modecard-chev{ color:var(--muted); font-size:18px; flex-shrink:0; }
+.hue-emerald{ background:rgba(16,185,129,.15); color:#10b981; }
+.hue-amber{ background:rgba(245,158,11,.15); color:#f59e0b; }
+.hue-cyan{ background:rgba(6,182,212,.15); color:#06b6d4; }
+.hue-rose{ background:rgba(244,63,94,.15); color:#f43f5e; }
+.hue-violet{ background:rgba(124,58,237,.15); color:#7c3aed; }
+.hue-slate{ background:rgba(100,116,139,.15); color:#64748b; }
+.tiptext{ font-size:12.5px; color:var(--muted); line-height:1.5; margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
 .confetti-piece{ position:fixed; top:-10px; width:8px; height:8px; z-index:100; pointer-events:none; }
 textarea.plan-out{ width:100%; min-height:220px; font-size:13px; border-radius:var(--radius); border:1px solid var(--border); background:var(--card); color:var(--fg); padding:12px; font-family:inherit; }
 </style>
@@ -332,6 +357,7 @@ function shuffle(arr){
   return arr;
 }
 function boxOf(id){ return (progress[id]&&progress[id].box)||1; }
+function isQuizLike(q){ return q.type!=="discuss"; }
 
 function buildSession(filterFn, count){
   var pool = QUESTIONS.filter(filterFn);
@@ -406,17 +432,63 @@ function render(){
   else if(view==="settings") body = renderSettings();
   else if(view==="glossary") body = renderGlossary();
   else if(view==="driving") body = renderDriving();
+  else if(view==="shortanswer") body = renderShortAnswer();
   app.innerHTML = topbarHtml() + body;
   if(modal){ renderModal(); }
   else { var oldModal = document.getElementById("modalRoot"); if(oldModal) oldModal.remove(); }
   if(!settings.seenTutorial && view==="home" && !modal){ openTutorial(); }
 }
 
+function quizPoolStats(){
+  var qs = QUESTIONS.filter(function(q){return q.src==="quiz1"||q.src==="quiz2";});
+  var a=0,c=0;
+  qs.forEach(function(q){ var r=progress[q.id]; if(r){ a+=(r.correctCount||0)+(r.wrongCount||0); c+=(r.correctCount||0); } });
+  return { total: qs.length, answered:a, accuracy: a? Math.round(100*c/a):null };
+}
+function modecard(icon, hue, title, desc, onclick){
+  return "<button class=\"modecard\" onclick=\""+onclick+"\"><div class=\"modecard-icon hue-"+hue+"\">"+icon+"</div><div class=\"modecard-body\"><div class=\"modecard-title\">"+title+"</div><div class=\"modecard-desc\">"+desc+"</div></div><div class=\"modecard-chev\">\u203a</div></button>";
+}
+
 function renderHome(){
   var s = computeStats();
+  var qp = quizPoolStats();
   var html="";
   html += "<h1>BIO 207 \u2014 Exam I Practice</h1>";
-  html += "<p class=\"muted\">Chapters 1, 4, 5, 7, 8 \u00b7 "+QUESTIONS.length+" questions \u00b7 multiple choice, true/false, fill-in, matching, labeling diagrams, and discussion review.</p>";
+  html += "<p class=\"muted\">Chapters 1, 4, 5, 7, 8 \u00b7 "+QUESTIONS.length+" questions total.</p>";
+
+  // ---- HERO: Quiz 1+2 (most important -- exam mirrors these) ----
+  html += "<button class=\"hero-card\" onclick=\"startSession(function(q){return q.src==='quiz1'||q.src==='quiz2';}, "+qp.total+", 'Quiz 1+2 review')\">";
+  html += "<div class=\"hero-icon\">\ud83c\udfaf</div><div style=\"flex:1;min-width:0;\">";
+  html += "<div class=\"hero-label\">Most like the real exam</div>";
+  html += "<div class=\"hero-title\">Quiz 1 + 2 Review</div>";
+  html += "<div class=\"hero-sub\">"+qp.total+" questions, same formats as they appeared"+(qp.accuracy!==null?" \u00b7 "+qp.accuracy+"% so far":"")+"</div>";
+  html += "</div><div class=\"hero-chev\">\u203a</div></button>";
+
+  // ---- ALERT: Weak areas (second most important) ----
+  (function(){
+    var flaggedQ = s.flaggedIds.map(function(id){return QUESTIONS.find(function(q){return q.id===id;});}).filter(function(q){return q && isQuizLike(q);});
+    var byClass = {overconfident:0, recurring:0, slipped:0, fragile:0};
+    flaggedQ.forEach(function(q){ var c=progress[q.id].lastClass; if(byClass[c]!==undefined) byClass[c]++; });
+    var n = flaggedQ.length;
+    var severe = byClass.overconfident>0 || byClass.recurring>0;
+    var bg = n===0 ? "var(--good-bg)" : (severe ? "var(--bad-bg)" : "var(--warn-bg)");
+    var fg = n===0 ? "var(--good)" : (severe ? "var(--bad)" : "var(--warn)");
+    html += "<div class=\"alert-card\" style=\"background:"+bg+";border-color:"+fg+";\">";
+    html += "<div class=\"alert-head\"><span style=\"font-size:16px;\">"+(n===0?"\u2705":"\u26a0\ufe0f")+"</span><span class=\"alert-title\" style=\"color:"+fg+";\">Weak Areas</span><span class=\"alert-count\" style=\"color:"+fg+";\">"+n+"</span></div>";
+    if(n===0){
+      html += "<div class=\"alert-msg\" style=\"color:"+fg+";\">Nothing flagged on the quiz-format questions right now -- nice work.</div>";
+    } else {
+      if(byClass.overconfident) html += "<span class=\"alert-chip\" style=\"background:"+bg+";color:"+fg+";border:1px solid "+fg+";\">"+byClass.overconfident+" overconfident</span>";
+      if(byClass.recurring) html += "<span class=\"alert-chip\" style=\"background:"+bg+";color:"+fg+";border:1px solid "+fg+";\">"+byClass.recurring+" recurring</span>";
+      if(byClass.slipped) html += "<span class=\"alert-chip\" style=\"background:"+bg+";color:"+fg+";border:1px solid "+fg+";\">"+byClass.slipped+" slipped</span>";
+      if(byClass.fragile) html += "<span class=\"alert-chip\" style=\"background:"+bg+";color:"+fg+";border:1px solid "+fg+";\">"+byClass.fragile+" fragile</span>";
+      html += "<div class=\"alert-msg\" style=\"color:"+fg+";\">"+(byClass.overconfident?"Some of these fooled you while you were sure -- fix these first.":byClass.recurring?"Some keep tripping you up more than once -- high priority.":"Worth another pass before the exam.")+"</div>";
+    }
+    html += "<button class=\"btn\" style=\"background:"+fg+";color:#fff;border-color:"+fg+";margin-bottom:0;\" onclick=\"go('weak')\">"+(n===0?"View weak areas":"Review "+n+" flagged question"+(n===1?"":"s"))+"</button>";
+    html += "</div>";
+  })();
+
+  // ---- Chapter progress (clickable) ----
   html += "<div class=\"card\"><div class=\"statgrid\">";
   html += "<div class=\"stat\"><div class=\"num\">"+s.totalAnswered+"</div><div class=\"lab\">answers given</div></div>";
   html += "<div class=\"stat\"><div class=\"num\">"+s.accuracy+"%</div><div class=\"lab\">accuracy</div></div>";
@@ -424,31 +496,45 @@ function renderHome(){
   CHAPTERS.forEach(function(ch){
     var c = s.byChapter[ch];
     var acc = c.a? Math.round(100*c.c/c.a):0;
-    html += "<div style=\"margin-top:8px;cursor:pointer;\" onclick=\"startSession(function(q){return q.ch==="+ch+";}, 15, 'Chapter "+ch+"')\"><div class=\"progresstop\"><span>Chapter "+ch+" \u203a</span><span>"+c.a+" answers</span></div><div class=\"barwrap heatbar\"><div class=\"bar heatbar\" style=\"width:"+(c.a?Math.min(100,acc):4)+"%; background:"+heatColor(acc,c.a)+";\"></div></div></div>";
+    html += "<div style=\"margin-top:8px;cursor:pointer;\" onclick=\"startSession(function(q){return q.ch==="+ch+" && isQuizLike(q);}, 15, 'Chapter "+ch+"')\"><div class=\"progresstop\"><span>Chapter "+ch+" \u203a</span><span>"+c.a+" answers</span></div><div class=\"barwrap heatbar\"><div class=\"bar heatbar\" style=\"width:"+(c.a?Math.min(100,acc):4)+"%; background:"+heatColor(acc,c.a)+";\"></div></div></div>";
   });
   html += "<div class=\"small\">"+(dbReady?"Synced \u2014 Claude can check your progress anytime.":"Saved on this device.")+"</div>";
   html += "</div>";
 
-  html += "<button class=\"btn btn-primary\" onclick=\"startSession(function(q){return true;}, 15, 'Mixed practice')\">Start mixed practice</button>";
-  html += "<button class=\"btn\" onclick=\"go('chapters')\">Practice one chapter</button>";
-  (function(){
-    var qCount = QUESTIONS.filter(function(q){return q.src==="quiz1"||q.src==="quiz2";}).length;
-    html += "<button class=\"btn\" onclick=\"startSession(function(q){return q.src==='quiz1'||q.src==='quiz2';}, "+qCount+", 'Quiz 1+2 review')\">Quiz 1+2 review <span class=\"muted\">("+qCount+" questions, as they appeared)</span></button>";
-  })();
-  html += "<button class=\"btn\" onclick=\"startSession(function(q){return true;}, 12, 'Speed round', true)\">\u26a1 Speed round (timed)</button>";
-  html += "<button class=\"btn\" onclick=\"go('weak')\">Weak areas ("+s.flaggedCount+" flagged)</button>";
-  html += "<button class=\"btn\" onclick=\"initPlanForm();go('plan')\">Study plan builder</button>";
-  html += "<button class=\"btn\" onclick=\"go('glossary')\">Glossary</button>";
-  html += "<button class=\"btn\" onclick=\"go('driving')\">\ud83d\ude97 Driving mode (study by voice)</button>";
-  html += "<button class=\"btn\" onclick=\"go('settings')\">Settings, export &amp; downloads</button>";
+  // ---- Secondary modes ----
+  html += modecard("\ud83d\udcda","violet","Practice one chapter","Pick a single chapter to drill","go('chapters')");
+  html += modecard("\ud83d\udd00","emerald","Mixed practice","Interleaved across all 5 chapters","startSession(function(q){return isQuizLike(q);}, 15, 'Mixed practice')");
+  html += modecard("\u26a1","amber","Speed round","Timed, quiz-format questions only","startSession(function(q){return isQuizLike(q);}, 12, 'Speed round', true)");
+  html += modecard("\ud83d\udcdd","cyan","Short answer review","Open-ended section/critical-thinking Qs, kept separate","go('shortanswer')");
+  html += modecard("\ud83d\uddd3\ufe0f","amber","Study plan builder","Turn days-left + hours into a session plan","initPlanForm();go('plan')");
+  html += modecard("\ud83d\udcd6","slate","Glossary","Key terms, tap any time","go('glossary')");
+  html += modecard("\ud83d\ude97","emerald","Driving mode","Export a voice-quiz file for any AI","go('driving')");
+  html += modecard("\u2699\ufe0f","slate","Settings, export &amp; downloads","Sound, theme, backups, downloads","go('settings')");
+
+  html += "<div class=\"tiptext\">\ud83d\udcd7 <strong>Don't forget the textbook itself:</strong> review the actual figures and labeled diagrams for each chapter (cell structures, staining steps, metabolic pathways). This app's labeling questions are simplified stand-ins -- if the real exam includes labeling, the textbook's own images are the closest practice.</div>";
   return html;
 }
 
 function renderChapterPicker(){
-  var html = "<h1>Pick a chapter</h1><p class=\"muted\">Weighted toward whatever you've missed before.</p>";
+  var html = "<h1>Pick a chapter</h1><p class=\"muted\">Quiz-format questions only (multiple choice, true/false, fill-in, matching, labeling) -- weighted toward whatever you've missed before. Short-answer review is separate.</p>";
   CHAPTERS.forEach(function(ch){
-    var n = QUESTIONS.filter(function(q){return q.ch===ch;}).length;
-    html += "<button class=\"btn\" onclick=\"startSession(function(q){return q.ch==="+ch+";}, 15, 'Chapter "+ch+"')\">Chapter "+ch+" <span class=\"muted\">("+n+" questions)</span></button>";
+    var n = QUESTIONS.filter(function(q){return q.ch===ch && isQuizLike(q);}).length;
+    html += "<button class=\"btn\" onclick=\"startSession(function(q){return q.ch==="+ch+" && isQuizLike(q);}, 15, 'Chapter "+ch+"')\">Chapter "+ch+" <span class=\"muted\">("+n+" questions)</span></button>";
+  });
+  html += "<button class=\"btn btn-ghost\" onclick=\"go('home')\">Back</button>";
+  return html;
+}
+
+// ======================= RENDER: SHORT ANSWER / DISCUSSION =======================
+function renderShortAnswer(){
+  var total = QUESTIONS.filter(function(q){return q.type==="discuss";}).length;
+  var html = "<h1>Short answer review</h1>";
+  html += "<div class=\"card\"><p class=\"small\">Open-ended section-review, writing-challenge, and critical-thinking questions. These likely won't match the exam's actual format (multiple choice, true/false, fill-in, matching) as closely, so they're kept separate from the main practice modes -- optional deep review, not required cramming.</p></div>";
+  html += "<button class=\"btn\" onclick=\"startSession(function(q){return q.type==='discuss';}, 20, 'Short answer -- all chapters')\">All chapters <span class=\"muted\">("+total+" questions)</span></button>";
+  CHAPTERS.forEach(function(ch){
+    var n = QUESTIONS.filter(function(q){return q.ch===ch && q.type==="discuss";}).length;
+    if(!n) return;
+    html += "<button class=\"btn\" onclick=\"startSession(function(q){return q.ch==="+ch+" && q.type==='discuss';}, 20, 'Short answer -- Chapter "+ch+"')\">Chapter "+ch+" <span class=\"muted\">("+n+" questions)</span></button>";
   });
   html += "<button class=\"btn btn-ghost\" onclick=\"go('home')\">Back</button>";
   return html;
@@ -466,7 +552,8 @@ function renderWeak(){
   });
   html += "</div>";
 
-  var flagged = s.flaggedIds.map(function(id){ return QUESTIONS.find(function(q){return q.id===id;}); }).filter(Boolean);
+  var flagged = s.flaggedIds.map(function(id){ return QUESTIONS.find(function(q){return q.id===id;}); }).filter(function(q){ return q && isQuizLike(q); });
+  html += "<p class=\"small\" style=\"margin:-4px 0 10px;\">Quiz-format questions only -- short-answer misses are tracked separately in that review mode.</p>";
   var byClass = {overconfident:[], recurring:[], slipped:[], fragile:[]};
   flagged.forEach(function(q){ var c = progress[q.id].lastClass; if(byClass[c]) byClass[c].push(q); });
 
@@ -483,7 +570,7 @@ function renderWeak(){
   html += section("Fragile (right, but unsure)", byClass.fragile, "fragile");
 
   if(flagged.length){
-    html += "<button class=\"btn btn-primary\" onclick=\"startSession(function(q){var r=progress[q.id]; return r&&r.flag;}, 20, 'Weak-area review')\">Practice all flagged ("+flagged.length+")</button>";
+    html += "<button class=\"btn btn-primary\" onclick=\"startSession(function(q){var r=progress[q.id]; return r&&r.flag&&isQuizLike(q);}, 20, 'Weak-area review')\">Practice all flagged ("+flagged.length+")</button>";
   } else {
     html += "<p class=\"muted\">Nothing flagged yet -- keep practicing and anything shaky will show up here.</p>";
   }
@@ -695,13 +782,14 @@ function renderQuiz(){
   if(session.idx >= session.queue.length){ clearInterval(session.timer); return renderDone(); }
   var q = session.queue[session.idx];
   var html = "";
-  html += "<div class=\"progresstop\"><span>"+session.mode+(session.speed?" \u26a1":"")+"</span><span>Question "+(session.idx+1)+" / "+session.queue.length+"</span></div>";
+  html += "<div class=\"progresstop\"><span><button class=\"iconbtn\" style=\"padding:3px 8px;margin-right:8px;\" onclick=\"exitSession()\">\u2039 Exit</button>"+session.mode+(session.speed?" \u26a1":"")+"</span><span>Question "+(session.idx+1)+" / "+session.queue.length+"</span></div>";
   if(session.speed){ html += "<div class=\"timerbar\"><div class=\"timerfill\" id=\"timerFill\" style=\"width:100%;\"></div></div>"; }
 
   html += "<div class=\"card\">";
   html += "<span class=\"chip\">Ch "+q.ch+"</span>";
   if(q.src==="quiz1") html += "<span class=\"chip tag-warn\">Quiz 1</span>";
   else if(q.src==="quiz2") html += "<span class=\"chip tag-warn\">Quiz 2</span>";
+  else if(q.src==="chapter") html += "<span class=\"chip\">End of chapter</span>";
   html += "<button class=\"iconbtn\" style=\"float:right;\" onclick=\"speakQuestion(QUESTIONS.find(function(x){return x.id==='"+q.id+"';}))\">\ud83d\udd0a Read aloud</button>";
   html += "<div class=\"qtext\" style=\"margin-top:10px;clear:both;\">"+escapeHtml(q.q)+"</div>";
 
@@ -832,6 +920,8 @@ function checkAnswer(timedOut){
   current.cls = recordAnswer(q, isCorrect, conf);
   render();
 }
+
+function exitSession(){ clearInterval(session.timer); go("home"); }
 
 function nextQuestion(){
   session.idx++;
